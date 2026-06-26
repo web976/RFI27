@@ -3,566 +3,938 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RFI Comprehensive Gateway & Management HQ</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>RFI Application System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --panel-bg: #1e293b;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-dark);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid var(--panel-bg);
+            border-top: 6px solid var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-text {
+            margin-top: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: var(--accent-blue);
+        }
+
+        /* Navigation Bar */
+        nav {
+            background-color: var(--panel-bg);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #2e3e56;
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent-blue);
+            letter-spacing: 1px;
+        }
+
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        /* Large Credits Display Badge */
+        .credits-container {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            background: #111827;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid #374151;
+        }
+
+        .credit-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #2563eb;
+            color: white;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .credit-badge.owner { background: #eab308; color: #000; }
+        .credit-badge.co-owner { background: #a855f7; }
+        .credit-badge.dev { background: #06b6d4; }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary { background-color: var(--accent-blue); color: white; }
+        .btn-secondary { background-color: #475569; color: white; }
+        .btn-danger { background-color: var(--accent-red); color: white; }
+        .btn-success { background-color: var(--accent-green); color: white; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* Main Container setup */
+        .container {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        /* Forms Layout styling */
+        .card {
+            background-color: var(--panel-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: white;
+            font-size: 1rem;
+        }
+
+        /* Grid Layout options */
+        .grid-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .option-card {
+            background: var(--panel-bg);
+            border: 2px solid #334155;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .option-card:hover {
+            border-color: var(--accent-blue);
+            background: #243249;
+        }
+
+        /* Question Layout Styling */
+        .question-block {
+            background: #111827;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--accent-blue);
+        }
+
+        .radio-group {
+            margin-top: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        /* Admin Dashboard Tabs & Split-screens */
+        .admin-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .app-manager-panel {
+            border: 1px solid #334155;
+            padding: 1rem;
+            border-radius: 8px;
+            background: #111827;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-section-divider {
+            border-top: 2px dashed #475569;
+            margin: 2rem 0;
+            padding-top: 1rem;
+            color: var(--accent-blue);
+            font-weight: bold;
+        }
+    </style>
 </head>
-<body class="bg-[#0b0f19] text-gray-200 font-sans min-h-screen relative">
+<body>
 
-    <div id="authContainer" class="fixed inset-0 bg-[#0b0f19] z-50 flex items-center justify-center p-4">
-        <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
-            <div class="absolute -right-10 -top-10 w-32 h-32 bg-purple-600/10 rounded-full blur-2xl"></div>
-            
-            <div class="flex flex-col items-center text-center mb-6">
-                <div class="p-4 bg-purple-600 rounded-2xl shadow-lg shadow-purple-900/40 mb-3">
-                    <i id="authIcon" class="fas fa-terminal text-2xl text-white"></i>
-                </div>
-                <h1 id="authTitle" class="text-xl font-black tracking-wide text-white uppercase">RFI Secure Gateway</h1>
-                <p id="authSubtitle" class="text-xs font-bold text-purple-400 tracking-widest uppercase mt-1">Authentication Module v4.0</p>
-            </div>
-
-            <div id="loginView" class="space-y-4">
-                <form onsubmit="handleAuthAction(event, 'login')" class="space-y-3">
-                    <div>
-                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Email Address</label>
-                        <input type="email" required class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-purple-500 transition" placeholder="name@domain.com">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Password</label>
-                        <input type="password" required class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-purple-500 transition" placeholder="••••••••">
-                    </div>
-                    <div class="text-right">
-                        <button type="button" onclick="switchAuthView('forgot')" class="text-[11px] text-purple-400 hover:underline cursor-pointer">Forgot Password?</button>
-                    </div>
-                    <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-widest transition shadow-lg cursor-pointer">
-                        Sign In to Profile
-                    </button>
-                </form>
-                
-                <div class="relative flex py-2 items-center">
-                    <div class="flex-grow border-t border-gray-800"></div>
-                    <span class="flex-shrink mx-3 text-gray-500 text-[10px] font-bold uppercase tracking-wider">Administrative Access</span>
-                    <div class="flex-grow border-t border-gray-800"></div>
-                </div>
-
-                <button onclick="enterSession('admin')" class="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs uppercase tracking-widest transition border border-gray-700 cursor-pointer flex items-center justify-center gap-2">
-                    Bypass to Admin Headquarters <i class="fas fa-shield-alt text-purple-400"></i>
-                </button>
-
-                <p class="text-xs text-gray-400 text-center mt-4">
-                    New operative? <button onclick="switchAuthView('register')" class="text-purple-400 font-bold hover:underline cursor-pointer">Create an account</button>
-                </p>
-            </div>
-
-            <div id="registerView" class="space-y-4 hidden">
-                <form onsubmit="handleAuthAction(event, 'register')" class="space-y-3">
-                    <div>
-                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Full Operative Name</label>
-                        <input type="text" required class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-purple-500 transition" placeholder="John Doe">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Email Address</label>
-                        <input type="email" required class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-purple-500 transition" placeholder="name@domain.com">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Create Password</label>
-                        <input type="password" required class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-purple-500 transition" placeholder="••••••••">
-                    </div>
-                    <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-widest transition shadow-lg cursor-pointer">
-                        Register Account Modules
-                    </button>
-                </form>
-                <p class="text-xs text-gray-400 text-center mt-2">
-                    Already registered? <button onclick="switchAuthView('login')" class="text-purple-400 font-bold hover:underline cursor-pointer">Log In</button>
-                </p>
-            </div>
-
-            <div id="forgotView" class="space-y-4 hidden">
-                <p class="text-xs text-gray-400 leading-relaxed text-center">Enter your registered matrix communications email, and we will dispatch a terminal bypass sequence link.</p>
-                <form onsubmit="handleAuthAction(event, 'forgot')" class="space-y-3">
-                    <div>
-                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Email Address</label>
-                        <input type="email" required class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-purple-500 transition" placeholder="name@domain.com">
-                    </div>
-                    <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-widest transition shadow-lg cursor-pointer">
-                        Send Recovery Dispatch
-                    </button>
-                </form>
-                <p class="text-xs text-gray-400 text-center mt-2">
-                    Remembered credentials? <button onclick="switchAuthView('login')" class="text-purple-400 font-bold hover:underline cursor-pointer">Back to Login</button>
-                </p>
-            </div>
-
-        </div>
+    <div id="loading-screen">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">LOADING RFI APP SYSTEM...</div>
     </div>
 
-
-    <div id="userHubLayer" class="hidden p-6 max-w-5xl mx-auto">
-        <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-6 mb-6 flex justify-between items-center shadow-2xl">
-            <div class="flex items-center gap-4">
-                <div class="p-4 bg-blue-600 rounded-xl shadow-lg">
-                    <i class="fas fa-file-contract text-2xl text-white"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-black tracking-wide text-white uppercase">RFI Application Registry Hub</h1>
-                    <p class="text-xs font-bold text-blue-400 tracking-widest uppercase mt-0.5">Operative Workspace: Fill Active Deployments</p>
-                </div>
+    <nav>
+        <div class="nav-logo">RFI</div>
+        <div class="nav-controls">
+            <div class="credits-container" id="nav-credits" style="display: none;">
+                <span class="credit-badge owner"><i class="fas fa-crown"></i> DrCreative07 (Owner)</span>
+                <span class="credit-badge co-owner"><i class="fas fa-crown"></i> TSGYT9 (Co-Owner)</span>
+                <span class="credit-badge dev"><i class="fas fa-hammer"></i> sarthak22220 (Dev)</span>
             </div>
-            <button onclick="logoutSession()" class="bg-[#1e293b] hover:bg-gray-800 text-gray-400 hover:text-white font-bold px-4 py-2 rounded-xl text-sm transition border border-gray-700 cursor-pointer">
-                Exit Session
-            </button>
+            <button class="btn btn-secondary" id="btn-to-admin" onclick="showView('admin-auth-view')">Admin Panel</button>
+            <button class="btn btn-danger" id="btn-logout" onclick="logout()" style="display: none;">Log Out</button>
         </div>
+    </nav>
 
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-            <div id="userRegistrySelectionBox" class="md:col-span-5 space-y-3">
-                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest px-2">Active Registries Available</h2>
-                </div>
+    <div class="container">
 
-            <div class="md:col-span-7">
-                <div id="blankFormPlaceholder" class="bg-[#131a2c] border border-gray-800 rounded-2xl p-8 text-center text-gray-500 font-semibold shadow-xl h-64 flex flex-col justify-center items-center">
-                    <i class="fas fa-arrow-left text-2xl text-purple-500/30 mb-3 animate-bounce"></i>
-                    <p class="text-xs uppercase tracking-wider">Select an application form card array from the left column layout to initialize data entry fields.</p>
-                </div>
-
-                <div id="activeFormFillCard" class="hidden bg-[#131a2c] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
-                    <div class="border-b border-gray-800 pb-3 flex justify-between items-center">
-                        <h2 id="fillFormTitleHeader" class="text-sm font-black uppercase text-white tracking-wide">Submission Terminal</h2>
-                        <button onclick="clearActiveFillForm()" class="text-gray-500 hover:text-gray-400 text-xs"><i class="fas fa-times"></i></button>
-                    </div>
-                    <form onsubmit="dispatchFilledApplicationData(event)" class="space-y-4">
-                        <div id="interactiveFieldsLoadingArea" class="space-y-4">
-                            </div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-widest transition shadow-lg shadow-blue-900/40 cursor-pointer">
-                            Submit Application Blueprint Data
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <div id="adminHeadquarters" class="hidden p-6">
-        
-        <div class="max-w-7xl mx-auto bg-[#131a2c] border border-gray-800 rounded-2xl p-6 mb-6 flex flex-col md:flex-row justify-between items-center shadow-2xl gap-4">
-            <div class="flex items-center gap-4">
-                <div class="p-4 bg-purple-600 rounded-xl shadow-lg shadow-purple-900/50">
-                    <i class="fas fa-cogs text-2xl text-white"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-black tracking-wide text-white uppercase">RFI Administrative Headquarters</h1>
-                    <p class="text-xs font-bold text-purple-400 tracking-widest uppercase mt-0.5">Secure Configuration Engine Access Portal</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <button onclick="toggleGlobalStatusBulk('OPEN')" class="bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 border border-gray-700 cursor-pointer">
-                    <i class="fas fa-folder-open text-gray-400"></i> OPEN
-                </button>
-                <button onclick="toggleGlobalStatusBulk('CLOSED')" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-lg shadow-red-900/40 cursor-pointer">
-                    <i class="fas fa-lock"></i> CLOSE
-                </button>
-                <button onclick="logoutSession()" class="bg-[#1e293b] hover:bg-gray-800 text-gray-400 hover:text-white font-bold px-4 py-2 rounded-xl text-sm transition border border-gray-700 cursor-pointer">
-                    Exit Session
-                </button>
-            </div>
-        </div>
-
-        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            <div class="lg:col-span-4 flex flex-col gap-6">
+        <div id="auth-view" class="view-section active">
+            <div class="card" style="max-width: 500px; margin: 0 auto;">
+                <h2 id="auth-title" style="margin-bottom: 1.5rem; text-align: center;">Login to RFI Portal</h2>
                 
-                <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-5 shadow-xl">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-md font-black uppercase tracking-wider text-white flex items-center gap-2">
-                            <i class="fas fa-toggle-on text-purple-400"></i> Registry Status Engine
-                        </h2>
+                <form id="auth-form" onsubmit="handleAuth(event)">
+                    <div class="form-group">
+                        <label>Roblox Username</label>
+                        <input type="text" id="auth-roblox" required autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label>Discord Username</label>
+                        <input type="text" id="auth-discord" required autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="auth-password" required autocomplete="off">
                     </div>
                     
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Target Application Registry</label>
-                            <select id="statusTargetRegistry" class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-3 text-sm text-gray-300 focus:outline-none focus:border-purple-500 transition">
-                                </select>
-                        </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" id="auth-submit-btn">Login</button>
+                </form>
 
-                        <div class="flex items-center justify-between bg-[#0b0f19] p-3 border border-gray-800 rounded-xl">
-                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Requested Status Mode</span>
-                            <button id="statusToggleBtn" onclick="toggleStatusState()" class="bg-green-600 hover:bg-green-500 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition shadow-md shadow-green-900/30 cursor-pointer">
-                                OPEN / ACTIVE
-                            </button>
-                        </div>
-
-                        <button onclick="applyStatusChange()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-widest transition shadow-lg shadow-purple-900/40 cursor-pointer">
-                            Apply Status Config Change
-                        </button>
-                    </div>
+                <div style="margin-top: 1.5rem; text-align: center; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <a href="#" onclick="toggleAuthMode()" id="auth-toggle-text" style="color: var(--accent-blue); text-decoration: none; font-size: 0.9rem;">Don't have an account? Register here</a>
+                    <a href="#" onclick="triggerForgotPassword()" style="color: var(--text-muted); text-decoration: none; font-size: 0.85rem;">Forgot Password? Reset it here</a>
                 </div>
-
-                <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-5 shadow-xl">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-md font-black uppercase tracking-wider text-white">Form Blueprint Manager</h2>
-                        <i class="fas fa-folder-plus text-purple-400 text-sm"></i>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Deploy New Form Type</label>
-                            <input type="text" id="newFormName" placeholder="e.g., HR Department" class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-3 text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500 transition text-gray-300">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Description Brief</label>
-                            <textarea id="newFormDesc" rows="3" placeholder="Describe the deployment criteria..." class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-3 text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500 transition text-gray-300 resize-none"></textarea>
-                        </div>
-                        <button onclick="createNewBlueprint()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-widest transition shadow-lg shadow-purple-900/40 cursor-pointer">
-                            Instantiate Blueprint
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="lg:col-span-8 flex flex-col gap-6">
-                
-                <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-6 shadow-xl flex-1">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-md font-black uppercase tracking-wider text-white">Form Inventory Blueprint Breakdown</h2>
-                        <span class="text-xs text-gray-500 font-semibold">Add or Remove Live Prompts</span>
-                    </div>
-                    
-                    <div id="blueprintContainer" class="space-y-4">
-                        </div>
-                </div>
-
-                <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-6 shadow-xl">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-md font-black uppercase tracking-wider text-white">User Application Evaluation Matrix Logs</h2>
-                        <i class="fas fa-signature text-purple-400"></i>
-                    </div>
-                    <div id="adminLogsContainer" class="bg-[#0b0f19] border border-gray-800 rounded-xl p-8 text-center text-gray-600 text-sm font-semibold max-h-60 overflow-y-auto">
-                        No active runtime form log streams detected.
-                    </div>
-                </div>
-
             </div>
         </div>
-    </div>
 
+        <div id="lobby-view" class="view-section">
+            <div class="card">
+                <h2>Welcome to RFI Applications, <span id="lobby-username" style="color: var(--accent-blue);">User</span></h2>
+                <p style="color: var(--text-muted); margin-top: 0.5rem;">Please select an open department path down below to construct your form entry.</p>
+                
+                <div class="grid-options" id="apps-list-grid">
+                    </div>
+            </div>
+        </div>
+
+        <div id="form-view" class="view-section">
+            <div class="card">
+                <button class="btn btn-secondary" onclick="showView('lobby-view')" style="margin-bottom: 1.5rem;"><i class="fas fa-arrow-left"></i> Back to Lobby</button>
+                <h2 id="form-title-header">Application Form</h2>
+                <p id="form-subtitle" style="color: var(--text-muted); margin-bottom: 2rem;"></p>
+
+                <form id="active-application-form" onsubmit="submitApplicationForm(event)">
+                    <div id="dynamic-questions-container">
+                        </div>
+                    <button type="submit" class="btn btn-success" style="width: 100%; font-size: 1.1rem; padding: 1rem;">Submit Application Form</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="admin-auth-view" class="view-section">
+            <div class="card" style="max-width: 450px; margin: 0 auto;">
+                <h2>Admin Verification</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Please enter security administration passphrase credentials.</p>
+                <div class="form-group">
+                    <label>Admin Password</label>
+                    <input type="password" id="admin-pass-input" autocomplete="off">
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-secondary" onclick="showView('auth-view')" style="flex: 1;">Cancel</button>
+                    <button class="btn btn-primary" onclick="verifyAdminAccess()" style="flex: 1;">Login Admin</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="admin-dashboard-view" class="view-section">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 1rem; margin-bottom: 2rem;">
+                    <h2>RFI Admin Console Dashboard</h2>
+                    <button class="btn btn-danger" onclick="showView('auth-view')">Exit Admin Mode</button>
+                </div>
+
+                <div class="app-manager-panel">
+                    <h3 style="margin-bottom: 1rem; color: var(--accent-blue);"><i class="fas fa-sliders-h"></i> Department & System Availability Options</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+                        <div style="background: #1e293b; padding: 1rem; border-radius: 6px;">
+                            <p style="font-weight: bold; margin-bottom: 0.5rem;">Tester Department</p>
+                            <label id="status-label-tester" style="display:block; font-size: 0.85rem; color: var(--accent-green); margin-bottom: 0.5rem;">Status: OPEN</label>
+                            <select id="toggle-tester-status" class="form-group" style="padding:0.4rem; margin-bottom:0.5rem;">
+                                <option value="open">Open Department</option>
+                                <option value="closed">Close Department</option>
+                            </select>
+                            <button class="btn btn-primary btn-sm" onclick="saveAppStatus('tester')">Apply Change</button>
+                        </div>
+                        <div style="background: #1e293b; padding: 1rem; border-radius: 6px;">
+                            <p style="font-weight: bold; margin-bottom: 0.5rem;">Moderation Department</p>
+                            <label id="status-label-moderation" style="display:block; font-size: 0.85rem; color: var(--accent-green); margin-bottom: 0.5rem;">Status: OPEN</label>
+                            <select id="toggle-moderation-status" class="form-group" style="padding:0.4rem; margin-bottom:0.5rem;">
+                                <option value="open">Open Department</option>
+                                <option value="closed">Close Department</option>
+                            </select>
+                            <button class="btn btn-primary btn-sm" onclick="saveAppStatus('moderation')">Apply Change</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="background: #111827; border: 1px solid #334155;">
+                    <h3><i class="fas fa-edit"></i> Modify Department Form Questions</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Add or remove custom questions directly inside the runtime matrix.</p>
+                    
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;" class="form-group">
+                        <div style="flex: 1; min-width: 200px;">
+                            <label>Select Department Target</label>
+                            <select id="editor-dept-select" onchange="renderAdminQuestionList()">
+                                <option value="tester">Tester Department</option>
+                                <option value="moderation">Moderation Department</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1; min-width: 200px;">
+                            <label>Question Type</label>
+                            <select id="editor-type-select">
+                                <option value="radio">Multiple Choice (Radio Options)</option>
+                                <option value="text">Written Essay Response</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Question Form Text Description</label>
+                        <input type="text" id="editor-question-prompt" placeholder="Type your application query here...">
+                    </div>
+
+                    <div class="form-group" id="editor-options-wrapper">
+                        <label>Options (Comma Separated, Only for Multiple Choice)</label>
+                        <input type="text" id="editor-question-options" placeholder="Option A, Option B, Option C, Option D">
+                    </div>
+
+                    <button class="btn btn-success" onclick="addNewCustomQuestion()">Add Form Question</button>
+
+                    <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem;">Active Registered Form Questions:</h4>
+                    <div id="admin-questions-list-render" style="max-height: 250px; overflow-y: auto; background: #1e293b; padding: 1rem; border-radius: 6px;">
+                        </div>
+                </div>
+
+                <div class="card" style="background: #111827; border: 1px solid #334155; margin-top: 2rem;">
+                    <h3><i class="fas fa-graduation-cap"></i> User Application Submissions & Grading Marks Engine</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Evaluate individual written and standard choices, grant custom section marks, and finalize results.</p>
+                    
+                    <div id="admin-submissions-render-hook">
+                        </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
 
     <script>
-        // Master Database Structure Configuration
-        let dynamicRegistryData = [
-            {
-                id: "tester-app",
-                name: "Tester Application",
-                code: "tester",
-                status: "OPEN",
-                questions: [
-                    "What should you do first when you find a bug?",
-                    "What is the main purpose of game testing?",
-                    "Which is most important in a bug report?",
-                    "What should you do if a bug only happens sometimes?"
-                ]
-            },
-            {
-                id: "mod-app",
-                name: "Moderator Application",
-                code: "mod",
-                status: "CLOSED",
-                questions: [
-                    "Explain your past moderation server experiences.",
-                    "How do you handle escalating conflict between users?"
-                ]
-            }
-        ];
+        // System Config and Core Secret Keys
+        const ADMIN_PASS_KEY = "RFIADMINPASS";
+        let isLoginMode = true;
+        let currentUser = null;
 
-        let registeredLogsArray = [];
-        let targetStatusMode = "OPEN";
-        let trackingSelectedFormIdForUser = null;
+        // Default Datasets Configured to Local State Engine
+        let applicationStatuses = JSON.parse(localStorage.getItem('rfi_app_statuses')) || {
+            tester: "open",
+            moderation: "open"
+        };
 
-        // AUTHVIEW LAYERING COMPONENT SWITCH
-        function switchAuthView(mode) {
-            document.getElementById('loginView').classList.add('hidden');
-            document.getElementById('registerView').classList.add('hidden');
-            document.getElementById('forgotView').classList.add('hidden');
+        let userAccounts = JSON.parse(localStorage.getItem('rfi_users')) || [];
+        let submittedForms = JSON.parse(localStorage.getItem('rfi_submissions')) || [];
 
-            const title = document.getElementById('authTitle');
-            const icon = document.getElementById('authIcon');
+        // Question Pools Storage Map (Includes Section Divisions Implicitly)
+        let originalQuestions = JSON.parse(localStorage.getItem('rfi_questions')) || {
+            tester: [
+                // Section 1: Multiple Choice Core
+                { id: "t1", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "What should you do first when you find a bug?", options: ["Ignore it", "Report it properly with details", "Leak it to players", "Delete the game"], answer: "Report it properly with details" },
+                { id: "t2", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "What is the main purpose of game testing?", options: ["Exploiting", "Finding bugs and improving gameplay", "Banning users", "Advertising the game"], answer: "Finding bugs and improving gameplay" },
+                { id: "t3", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "Which is most important in a bug report?", options: ["Clear reproduction steps", "Fancy formatting", "Random emojis", "Short messages only"], answer: "Clear reproduction steps" },
+                { id: "t4", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "What should you do if a bug only happens sometimes?", options: ["Ignore it", "Keep testing and gather proof", "Leak it publicly", "Quit testing"], answer: "Keep testing and gather proof" },
+                { id: "t5", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "What quality is important for a tester?", options: ["Patience", "Toxic behavior", "Favoritism", "Spamming"], answer: "Patience" },
+                { id: "t6", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "What should testers do after an update releases?", options: ["Test the new features", "Ignore the update", "Ban players", "Stop testing"], answer: "Test the new features" },
+                { id: "t7", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "What does “reproducing a bug” mean?", options: ["Creating bugs", "Making the bug happen again", "Removing the bug", "Hiding the issue"], answer: "Making the bug happen again" },
+                { id: "t8", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "Why is testing on multiple devices useful?", options: ["It helps find device-specific issues", "It wastes time", "It lowers performance", "It is unnecessary"], answer: "It helps find device-specific issues" },
+                { id: "t9", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "What should testers avoid doing?", options: ["Reporting bugs", "Leaking confidential information", "Recording evidence", "Giving feedback"], answer: "Leaking confidential information" },
+                { id: "t10", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "If a developer disagrees with your report, what should you do?", options: ["Stay respectful and explain clearly", "Start arguing", "Spam messages", "Leave immediately"], answer: "Stay respectful and explain clearly" },
+                // Section 2: Written Assessments
+                { id: "tw1", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "Why do you want to join the tester department?" },
+                { id: "tw2", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "What would you do if you found a bug in a Roblox game?" },
+                { id: "tw3", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "How would you write a bug report so developers can reproduce the issue?" },
+                { id: "tw4", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "Describe a bug you have found in a Roblox game before." },
+                { id: "tw5", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "What information should be included when reporting a bug?" },
+                { id: "tw6", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "How would you test whether a new update has broken an existing feature?" },
+                { id: "tw7", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "If a player reports that a quest is not working, how would you investigate the problem?" },
+                { id: "tw8", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "What is the difference between a bug, a glitch, and a game balance issue?" },
+                { id: "tw9", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "How would you test a game pass, developer product, or in-game purchase?" },
+                { id: "tw10", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "What feedback would you give developers besides reporting bugs?" },
+                { id: "tw11", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "Imagine a player can walk through a wall in one area of the map. Write a complete bug report for this issue." }
+            ],
+            moderation: [
+                // Section 1: Multiple Choice Core
+                { id: "m1", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "What is the main responsibility of a moderator?", options: ["Starting arguments", "Keeping the community safe and peaceful", "Leaking chats", "Exploiting powers"], answer: "Keeping the community safe and peaceful" },
+                { id: "m2", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "What should you do if two users are fighting?", options: ["Join the argument", "Calm the situation and follow rules", "Ignore them", "Ban everyone instantly"], answer: "Calm the situation and follow rules" },
+                { id: "m3", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "If a member repeatedly breaks rules, what should happen?", options: ["Appropriature punishment according to guidelines", "Ignore them", "Give special treatment", "Delete the server"], answer: "Appropriature punishment according to guidelines" },
+                { id: "m4", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "What should moderators avoid?", options: ["Bias and favoritism", "Helping members", "Reading reports", "Following rules"], answer: "Bias and favoritism" },
+                { id: "m5", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "If your friend breaks rules, what should you do?", options: ["Ignore it", "Apply rules fairly", "Hide evidence", "Blame someone else"], answer: "Apply rules fairly" },
+                { id: "m6", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "What does professionalism mean for moderators?", options: ["Respectful and mature behavior", "Toxic behavior", "Spamming users", "Threatening members"], answer: "Respectful and mature behavior" },
+                { id: "m7", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "What should be done before banning someone?", options: ["Collect evidence", "Guess randomly", "Ask random users", "Ban for fun"], answer: "Collect evidence" },
+                { id: "m8", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "How should moderators communicate with members?", options: ["Respectfully", "Rudely", "Aggressively", "With insults"], answer: "Respectfully" },
+                { id: "m9", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "What should you do if you are unsure about a punishment?", options: ["Ask senior staff", "Punish randomly", "Ignore the issue", "Leak reports"], answer: "Ask senior staff" },
+                { id: "m10", section: "Section 1: Multiple Choice Core", type: "radio", prompt: "What can happen if a moderator abuses powers?", options: ["Promotion", "Removal from staff", "Rewards", "Nothing"], answer: "Removal from staff" },
+                // Section 2: Written Assessments
+                { id: "mw1", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "Why do you want to join the moderation department?" },
+                { id: "mw2", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "How would you handle a toxic member?" },
+                { id: "mw3", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "What would you do if your friend broke server rules?" },
+                { id: "mw4", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "How would you deal with spam or raids?" },
+                { id: "mw5", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "What makes someone a good moderator?" },
+                { id: "mw6", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "How active can you be daily?" },
+                { id: "mw7", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "What would you do if a member argued with your punishment?" },
+                { id: "mw8", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "How would you handle stressful situations during moderation?" },
+                { id: "mw9", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "Why is fairness important in moderation?" },
+                { id: "mw10", section: "Section 2: Written Long-Form Essay Context", type: "text", prompt: "Describe a situation where you solved a conflict peacefully." }
+            ]
+        };
 
-            if (mode === 'login') {
-                document.getElementById('loginView').classList.remove('hidden');
-                title.innerText = "RFI Secure Gateway";
-                icon.className = "fas fa-terminal text-2xl text-white";
-            } else if (mode === 'register') {
-                document.getElementById('registerView').classList.remove('hidden');
-                title.innerText = "Operative Registry";
-                icon.className = "fas fa-user-plus text-2xl text-white";
-            } else if (mode === 'forgot') {
-                document.getElementById('forgotView').classList.remove('hidden');
-                title.innerText = "Credential Bypass";
-                icon.className = "fas fa-key text-2xl text-white";
+        // Execution Window Orchestration
+        window.addEventListener('DOMContentLoaded', () => {
+            saveQuestionsState();
+            // Handle loading timeout transitions cleanly
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                }, 500);
+            }, 1200);
+
+            renderLobbyApplicationGrid();
+            renderAdminQuestionList();
+            renderAdminGraderConsole();
+            updateAdminTogglesUI();
+        });
+
+        function saveQuestionsState() {
+            localStorage.setItem('rfi_questions', JSON.stringify(originalQuestions));
+        }
+
+        // View Routing Layout Core
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            
+            // Clean dynamic view updates when reloading scenes
+            if (viewId === 'lobby-view') {
+                renderLobbyApplicationGrid();
             }
         }
 
-        // TRIGGER SUBMITS FOR AUTH OVERLAYS
-        function handleAuthAction(event, actionType) {
+        // Toggle authentication workflows
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('auth-title').innerText = isLoginMode ? "Login to RFI Portal" : "Register RFI Candidate Account";
+            document.getElementById('auth-toggle-text').innerText = isLoginMode ? "Don't have an account? Register here" : "Already have an account? Login here";
+            document.getElementById('auth-submit-btn').innerText = isLoginMode ? "Login" : "Register Account";
+        }
+
+        // Handles user credential evaluation or creation securely
+        function handleAuth(event) {
             event.preventDefault();
-            if(actionType === 'login') {
-                enterSession('user');
-            } else if(actionType === 'register') {
-                alert("Operative registration packet saved to sequence layer! Proceeding to entry workflow.");
-                switchAuthView('login');
-            } else if(actionType === 'forgot') {
-                alert("Security dispatch link routed successfully. Inspect terminal transmission loops.");
-                switchAuthView('login');
-            }
-            event.target.reset();
-        }
+            const roblox = document.getElementById('auth-roblox').value.trim();
+            const discord = document.getElementById('auth-discord').value.trim();
+            const password = document.getElementById('auth-password').value;
 
-        // SESSION ROUTING PORTAL TRIGGERS
-        function enterSession(role) {
-            document.getElementById('authContainer').classList.add('hidden');
-            if(role === 'admin') {
-                document.getElementById('adminHeadquarters').classList.remove('hidden');
-                updateAdminDOM();
+            if (!roblox || !discord || !password) return alert("Fill out all parameters properly.");
+
+            if (isLoginMode) {
+                // Find account profile matching username specs
+                const user = userAccounts.find(u => u.roblox.toLowerCase() === roblox.toLowerCase() && u.password === password);
+                if (!user) {
+                    return alert("Invalid credentials or user password mapping parameters!");
+                }
+                currentUser = user;
+                successfulLoginRouting();
             } else {
-                document.getElementById('userHubLayer').classList.remove('hidden');
-                updateUserDOM();
+                // Registration Logic (Allows multi-account matching/creation if forgot password)
+                const newUser = { id: 'usr_' + Date.now(), roblox, discord, password };
+                userAccounts.push(newUser);
+                localStorage.setItem('rfi_users', JSON.stringify(userAccounts));
+                currentUser = newUser;
+                alert("Account created successfully!");
+                successfulLoginRouting();
             }
         }
 
-        function logoutSession() {
-            document.getElementById('adminHeadquarters').classList.add('hidden');
-            document.getElementById('userHubLayer').classList.add('hidden');
-            document.getElementById('authContainer').classList.remove('hidden');
-            switchAuthView('login');
-            clearActiveFillForm();
+        function triggerForgotPassword() {
+            const robloxUser = prompt("Enter your Roblox username to look up your account identity mapping:");
+            if (!robloxUser) return;
+            
+            const matchIndex = userAccounts.findIndex(u => u.roblox.toLowerCase() === robloxUser.trim().toLowerCase());
+            if (matchIndex === -1) {
+                alert("No user registered under that Roblox identifier tag inside RFI local system.");
+            } else {
+                const newPass = prompt("Enter your absolute new password allocation sequence:");
+                if (!newPass) return alert("Operation cancelled or blank input provided.");
+                userAccounts[matchIndex].password = newPass;
+                localStorage.setItem('rfi_users', JSON.stringify(userAccounts));
+                alert("Password updated safely! Proceed with logging into the interface.");
+            }
         }
 
-        // ==========================================================
-        // USER FILL FORM RUNTIME MODULE FUNCTIONS
-        // ==========================================================
-        function updateUserDOM() {
-            const selectionBox = document.getElementById('userRegistrySelectionBox');
-            if(!selectionBox) return;
-            selectionBox.innerHTML = '<h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest px-2">Active Registries Available</h2>';
+        function successfulLoginRouting() {
+            document.getElementById('lobby-username').innerText = currentUser.roblox;
+            document.getElementById('nav-credits').style.display = 'flex';
+            document.getElementById('btn-logout').style.display = 'block';
+            document.getElementById('btn-to-admin').style.display = 'none';
+            
+            // Trigger beautiful fresh load sequence upon authenticated session requests
+            document.getElementById('loading-screen').style.display = 'flex';
+            document.getElementById('loading-screen').style.opacity = '1';
+            
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                    showView('lobby-view');
+                }, 500);
+            }, 1000);
+        }
 
-            dynamicRegistryData.forEach((app) => {
-                let card = document.createElement('div');
-                let isOpen = app.status === "OPEN";
-                
-                card.className = `border p-4 rounded-xl shadow-lg transition-all ${
-                    isOpen 
-                    ? 'bg-[#131a2c] border-gray-800 hover:border-blue-500 cursor-pointer' 
-                    : 'bg-[#101420] border-gray-900 opacity-50 cursor-not-allowed'
-                }`;
-                
-                if(isOpen) {
-                    card.onclick = () => openFillFormContainer(app.id);
+        function logout() {
+            currentUser = null;
+            document.getElementById('nav-credits').style.display = 'none';
+            document.getElementById('btn-logout').style.display = 'none';
+            document.getElementById('btn-to-admin').style.display = 'block';
+            
+            // Reset input values
+            document.getElementById('auth-roblox').value = '';
+            document.getElementById('auth-discord').value = '';
+            document.getElementById('auth-password').value = '';
+            
+            showView('auth-view');
+        }
+
+        // Verify Admin Credentials
+        function verifyAdminAccess() {
+            const secret = document.getElementById('admin-pass-input').value;
+            if (secret === ADMIN_PASS_KEY) {
+                document.getElementById('admin-pass-input').value = '';
+                showView('admin-dashboard-view');
+            } else {
+                alert("ACCESS DENIED: Incorrect Security Verification Keyway Phrase.");
+            }
+        }
+
+        // Render available operational applications inside candidate grid panels
+        function renderLobbyApplicationGrid() {
+            const grid = document.getElementById('apps-list-grid');
+            grid.innerHTML = '';
+
+            const departments = [
+                { key: 'tester', name: 'Tester Application', desc: 'Identify bugs, write structural technical replication reports, and audit engine capabilities.' },
+                { key: 'moderation', name: 'Moderation Application', desc: 'Preserve peace across infrastructure grids, enforce server rules, and neutralize toxic actors.' }
+            ];
+
+            departments.forEach(dept => {
+                const isOpen = applicationStatuses[dept.key] === "open";
+                // Render applications conditionally; if closed, it will not be visible to candidates
+                if (!isOpen) return; 
+
+                const card = document.createElement('div');
+                card.className = 'option-card';
+                card.onclick = () => launchApplicationFormSheet(dept.key);
+                card.innerHTML = `
+                    <h3 style="color: var(--accent-blue); margin-bottom:0.5rem;">${dept.name}</h3>
+                    <p style="font-size:0.9rem; color: var(--text-muted);">${dept.desc}</p>
+                    <button class="btn btn-primary" style="margin-top:1.5rem; width:100%;">Apply Now</button>
+                `;
+                grid.appendChild(card);
+            });
+
+            if (grid.innerHTML === '') {
+                grid.innerHTML = `<p style="text-align:center; width:100%; color: var(--accent-red);">All application portals are currently CLOSED by executive command.</p>`;
+            }
+        }
+
+        // Inject appropriate targeted department question models 
+        let activeFormType = '';
+        function launchApplicationFormSheet(deptKey) {
+            activeFormType = deptKey;
+            document.getElementById('form-title-header').innerText = deptKey.toUpperCase() + " DEPARTMENT APPLICATION";
+            document.getElementById('form-subtitle').innerText = `Fill out every structural segment carefully. Review documentation files prior to submitting answers.`;
+            
+            const container = document.getElementById('dynamic-questions-container');
+            container.innerHTML = '';
+
+            const questions = originalQuestions[deptKey] || [];
+            
+            // Track sections to inject beautiful header divisions cleanly
+            let currentSectionTitle = "";
+
+            questions.forEach((q, index) => {
+                if (q.section && q.section !== currentSectionTitle) {
+                    currentSectionTitle = q.section;
+                    const sectionDiv = document.createElement('div');
+                    sectionDiv.className = 'form-section-divider';
+                    sectionDiv.innerText = currentSectionTitle.toUpperCase();
+                    container.appendChild(sectionDiv);
                 }
 
-                card.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h3 class="text-sm font-bold text-white">${app.name}</h3>
-                            <p class="text-[11px] text-gray-400 mt-1">${app.questions.length} Evaluation Metrics Configured</p>
-                        </div>
-                        <span class="text-[9px] px-2 py-0.5 rounded font-black bg-opacity-10 ${isOpen ? 'bg-green-500 text-green-400' : 'bg-red-500 text-red-400'}">${app.status}</span>
-                    </div>
-                `;
-                selectionBox.appendChild(card);
+                const qBlock = document.createElement('div');
+                qBlock.className = 'question-block';
+                qBlock.innerHTML = `<p style="font-weight: 600;">Q${index + 1}: ${q.prompt}</p>`;
+
+                if (q.type === 'radio') {
+                    const radioGroup = document.createElement('div');
+                    radioGroup.className = 'radio-group';
+                    q.options.forEach(opt => {
+                        radioGroup.innerHTML += `
+                            <label class="radio-item">
+                                <input type="radio" name="question_${q.id}" value="${opt}" required>
+                                <span>${opt}</span>
+                            </label>
+                        `;
+                    });
+                    qBlock.appendChild(radioGroup);
+                } else {
+                    qBlock.innerHTML += `
+                        <textarea name="question_${q.id}" rows="4" style="width:100%; margin-top:0.8rem; background:#0f172a; border:1px solid #334155; color:white; padding:0.5rem; border-radius:6px;" required placeholder="Provide structural description entry response..."></textarea>
+                    `;
+                }
+
+                container.appendChild(qBlock);
             });
+
+            showView('form-view');
         }
 
-        function openFillFormContainer(appId) {
-            const app = dynamicRegistryData.find(a => a.id === appId);
-            if(!app || app.status !== "OPEN") return;
-
-            trackingSelectedFormIdForUser = appId;
-            document.getElementById('blankFormPlaceholder').classList.add('hidden');
-            
-            const fillCard = document.getElementById('activeFormFillCard');
-            fillCard.classList.remove('hidden');
-            
-            document.getElementById('fillFormTitleHeader').innerText = `${app.name} Data Entry Field`;
-
-            const fieldArea = document.getElementById('interactiveFieldsLoadingArea');
-            fieldArea.innerHTML = '';
-
-            app.questions.forEach((question, index) => {
-                let div = document.createElement('div');
-                div.className = "space-y-1.5";
-                div.innerHTML = `
-                    <label class="block text-xs font-bold text-gray-400 tracking-wide">${index + 1}. ${question}</label>
-                    <input type="text" required class="form-input-field w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-blue-500 transition" placeholder="Provide documentation structural values...">
-                `;
-                fieldArea.appendChild(div);
-            });
-        }
-
-        function clearActiveFillForm() {
-            trackingSelectedFormIdForUser = null;
-            document.getElementById('activeFormFillCard').classList.add('hidden');
-            document.getElementById('blankFormPlaceholder').classList.remove('hidden');
-        }
-
-        function dispatchFilledApplicationData(event) {
+        // Submits form responses to local storage grading array pipelines
+        function submitApplicationForm(event) {
             event.preventDefault();
-            const app = dynamicRegistryData.find(a => a.id === trackingSelectedFormIdForUser);
-            if(!app) return;
+            const formData = new FormData(event.target);
+            const responses = [];
 
-            const inputs = event.target.querySelectorAll('.form-input-field');
-            let collectionSummaryArray = [];
+            const questions = originalQuestions[activeFormType] || [];
+            questions.forEach(q => {
+                responses.push({
+                    questionId: q.id,
+                    prompt: q.prompt,
+                    type: q.type,
+                    expectedAnswer: q.answer || null,
+                    userAnswer: formData.get(`question_${q.id}`)
+                });
+            });
+
+            const submission = {
+                id: 'sub_' + Date.now(),
+                applicant: currentUser,
+                department: activeFormType,
+                timestamp: new Date().toLocaleString(),
+                responses: responses,
+                gradingMarks: {}, // populates on grading execution
+                finalScore: null,
+                status: 'Pending Review'
+            };
+
+            submittedForms.push(submission);
+            localStorage.setItem('rfi_submissions', JSON.stringify(submittedForms));
             
-            inputs.forEach((input, index) => {
-                collectionSummaryArray.push(`[Q${index+1}: ${input.value}]`);
-            });
-
-            // Store inside shared matrix logs tracker
-            registeredLogsArray.push({
-                formName: app.name,
-                timestamp: new Date().toLocaleTimeString(),
-                answers: collectionSummaryArray.join(' | ')
-            });
-
-            alert(`Deployment transmission packet for [${app.name}] routed straight to core logs framework database.`);
+            alert("Application submitted successfully to the RFI Evaluation Board!");
             event.target.reset();
-            clearActiveFillForm();
-            updateUserDOM();
+            showView('lobby-view');
         }
 
-        // ==========================================================
-        // MAIN ADMINISTRATIVE BACKEND ROUTINES (SAME AS ORIGINAL)   
-        // ==========================================================
-        function updateAdminDOM() {
-            const container = document.getElementById('blueprintContainer');
-            const selector = document.getElementById('statusTargetRegistry');
-            
-            if(!container || !selector) return;
-            
+        // Save application deployment toggle states
+        function saveAppStatus(deptKey) {
+            const val = document.getElementById(`toggle-${deptKey}-status`).value;
+            applicationStatuses[deptKey] = val;
+            localStorage.setItem('rfi_app_statuses', JSON.stringify(applicationStatuses));
+            updateAdminTogglesUI();
+            alert(`Successfully altered deployment state to: ${val.toUpperCase()}`);
+        }
+
+        function updateAdminTogglesUI() {
+            for (let key in applicationStatuses) {
+                const lbl = document.getElementById(`status-label-${key}`);
+                const select = document.getElementById(`toggle-${key}-status`);
+                if (lbl && select) {
+                    const status = applicationStatuses[key];
+                    lbl.innerText = `Status: ${status.toUpperCase()}`;
+                    lbl.style.color = status === 'open' ? 'var(--accent-green)' : 'var(--accent-red)';
+                    select.value = status;
+                }
+            }
+        }
+
+        // Question Editor: Toggle context field display visibility based on dynamic selectors
+        document.getElementById('editor-type-select').addEventListener('change', (e) => {
+            const wrapper = document.getElementById('editor-options-wrapper');
+            wrapper.style.display = e.target.value === 'radio' ? 'block' : 'none';
+        });
+
+        function renderAdminQuestionList() {
+            const targetDept = document.getElementById('editor-dept-select').value;
+            const container = document.getElementById('admin-questions-list-render');
             container.innerHTML = '';
-            selector.innerHTML = '';
 
-            dynamicRegistryData.forEach((app) => {
-                let option = document.createElement('option');
-                option.value = app.id;
-                option.innerText = `${app.name} [Status: ${app.status}]`;
-                selector.appendChild(option);
-
-                let card = document.createElement('div');
-                card.className = "bg-[#0b0f19] border border-gray-800 rounded-xl p-4 relative overflow-hidden shadow-inner";
+            const questions = originalQuestions[targetDept] || [];
+            questions.forEach((q, idx) => {
+                const item = document.createElement('div');
+                item.style.background = '#0f172a';
+                item.style.padding = '0.5rem 1rem';
+                item.style.borderRadius = '4px';
+                item.style.marginBottom = '0.5rem';
+                item.style.display = 'flex';
+                item.style.justifyContent = 'between';
+                item.style.alignItems = 'center';
                 
-                let badgeColor = app.status === "OPEN" ? "bg-green-500 text-green-400" : "bg-red-500 text-red-400";
-                if(app.status === "CLOSED") card.classList.add('opacity-75');
+                item.innerHTML = `
+                    <div style="flex:1;">
+                        <span style="color:var(--accent-blue); font-weight:bold; font-size:0.8rem;">[${q.type.toUpperCase()}]</span> 
+                        <span style="font-size:0.9rem;">${q.prompt}</span>
+                    </div>
+                    <button class="btn btn-danger" style="padding:0.2rem 0.5rem; font-size:0.8rem;" onclick="removeQuestionNode('${targetDept}', '${q.id}')">Remove</button>
+                `;
+                container.appendChild(item);
+            });
+        }
 
-                let questionsHTML = '';
-                app.questions.forEach((q, idx) => {
-                    questionsHTML += `
-                        <div class="flex justify-between items-center bg-[#131a2c]/50 border border-gray-800/80 px-4 py-2 rounded-lg text-xs font-semibold text-gray-300">
-                            <span class="truncate"><span class="text-blue-400 font-bold">[METRIC]</span> ${q}</span>
-                            <i onclick="deleteQuestion('${app.id}', ${idx})" class="fas fa-trash-alt text-red-500/60 hover:text-red-400 cursor-pointer transition p-1"></i>
+        function addNewCustomQuestion() {
+            const targetDept = document.getElementById('editor-dept-select').value;
+            const type = document.getElementById('editor-type-select').value;
+            const promptText = document.getElementById('editor-question-prompt').value.trim();
+            const optionsString = document.getElementById('editor-question-options').value.trim();
+
+            if (!promptText) return alert("Please specify a valid question prompt description.");
+
+            let parsedOptions = [];
+            if (type === 'radio') {
+                if (!optionsString) return alert("Please specify comma-separated choices for multiple choice queries.");
+                parsedOptions = optionsString.split(',').map(o => o.trim());
+            }
+
+            const newQ = {
+                id: 'custom_' + Date.now(),
+                section: type === 'radio' ? "Section 1: Multiple Choice Core" : "Section 2: Written Long-Form Essay Context",
+                type: type,
+                prompt: promptText,
+                options: parsedOptions,
+                answer: type === 'radio' ? parsedOptions[0] : null // sets first item as default solution criteria
+            };
+
+            originalQuestions[targetDept].push(newQ);
+            saveQuestionsState();
+            renderAdminQuestionList();
+
+            // Clear inputs
+            document.getElementById('editor-question-prompt').value = '';
+            document.getElementById('editor-question-options').value = '';
+            alert("Added custom application question directly into core operational state structures!");
+        }
+
+        function removeQuestionNode(deptKey, questionId) {
+            originalQuestions[deptKey] = originalQuestions[deptKey].filter(q => q.id !== questionId);
+            saveQuestionsState();
+            renderAdminQuestionList();
+        }
+
+        // Render Grader Management Component Matrix
+        function renderAdminGraderConsole() {
+            const hook = document.getElementById('admin-submissions-render-hook');
+            hook.innerHTML = '';
+
+            if (submittedForms.length === 0) {
+                hook.innerHTML = `<p style="color:var(--text-muted); font-size:0.9rem;">No candidate entries are logged inside local memory registers currently.</p>`;
+                return;
+            }
+
+            submittedForms.forEach((sub, sIdx) => {
+                const panel = document.createElement('div');
+                panel.style.background = '#1e293b';
+                panel.style.padding = '1.5rem';
+                panel.style.borderRadius = '8px';
+                panel.style.marginBottom = '1.5rem';
+                panel.style.border = '1px solid #475569';
+
+                let responsesHTML = '';
+                sub.responses.forEach((resp, rIdx) => {
+                    let gradingUI = '';
+                    if (resp.type === 'text') {
+                        const currentMark = sub.gradingMarks[resp.questionId] || '';
+                        gradingUI = `
+                            <div style="margin-top:0.5rem; display:flex; gap:0.5rem; align-items:center;">
+                                <span style="font-size:0.8rem; color:var(--accent-blue);">Assign Marks for this Question:</span>
+                                <input type="number" placeholder="Marks" value="${currentMark}" style="width:80px; padding:0.2rem;" onchange="updateQuestionMarkScore(${sIdx}, '${resp.questionId}', this.value)">
+                            </div>
+                        `;
+                    } else {
+                        const isCorrect = resp.userAnswer === resp.expectedAnswer;
+                        gradingUI = `<p style="font-size:0.85rem; color:${isCorrect ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:bold;">
+                            [Automated System Audit: ${isCorrect ? 'CORRECT (+1 Mark)' : 'INCORRECT (0 Marks)'} | Expected: ${resp.expectedAnswer}]
+                        </p>`;
+                    }
+
+                    responsesHTML += `
+                        <div style="background:#0f172a; padding:0.8rem; border-radius:6px; margin-bottom:0.8rem;">
+                            <p style="font-size:0.9rem; font-weight:bold;">Q${rIdx+1}: ${resp.prompt}</p>
+                            <p style="font-size:0.9rem; color:var(--text-muted); margin:0.2rem 0;">Candidate Answer: <span style="color:white;">${resp.userAnswer}</span></p>
+                            ${gradingUI}
                         </div>
                     `;
                 });
 
-                card.innerHTML = `
-                    <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-3">
+                panel.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:0.5rem; margin-bottom:1rem;">
                         <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-sm font-black text-white tracking-wide">${app.name}</h3>
-                                <span class="text-[10px] font-bold text-gray-500 uppercase">(${app.code})</span>
-                                <span class="text-[9px] px-2 py-0.5 rounded-md font-black tracking-widest uppercase bg-opacity-10 ${badgeColor}">${app.status}</span>
-                            </div>
+                            <h4 style="color:white;">Applicant: ${sub.applicant.roblox} (Discord: ${sub.applicant.discord})</h4>
+                            <p style="font-size:0.8rem; color:var(--text-muted);">Submitted Pipeline: ${sub.department.toUpperCase()} | Time: ${sub.timestamp}</p>
                         </div>
-                        <button onclick="deleteEntireForm('${app.id}')" class="text-xs text-red-400 hover:text-red-300 font-bold flex items-center gap-1.5 transition cursor-pointer">
-                            <i class="fas fa-folder-minus"></i> Delete Form
-                        </button>
+                        <div>
+                            <span class="credit-badge" style="background:#475569;">Status: ${sub.status}</span>
+                            <span class="credit-badge" style="background:var(--accent-blue); margin-left:0.5rem;">Final Marks Score: ${sub.finalScore !== null ? sub.finalScore : 'Not Calculated'}</span>
+                        </div>
                     </div>
-                    <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                        ${questionsHTML || '<div class="text-xs text-gray-600 italic py-2">No functional question modules deployed in this engine.</div>'}
+                    <div>
+                        <h5>Form Responses & Marking Controls:</h5>
+                        <div style="margin-top:0.8rem;">${responsesHTML}</div>
+                    </div>
+                    <div style="margin-top:1rem; display:flex; gap:1rem;">
+                        <button class="btn btn-primary" onclick="calculateAndPublishResults(${sIdx})">Calculate & Release Results</button>
+                        <button class="btn btn-success" onclick="finalizeSubmissionStatus(${sIdx}, 'Passed / Accepted')">Accept Applicant</button>
+                        <button class="btn btn-danger" onclick="finalizeSubmissionStatus(${sIdx}, 'Failed / Rejected')">Reject Applicant</button>
                     </div>
                 `;
-                container.appendChild(card);
+                hook.appendChild(panel);
+            });
+        }
+
+        function updateQuestionMarkScore(subIdx, qId, val) {
+            submittedForms[subIdx].gradingMarks[qId] = parseFloat(val) || 0;
+            localStorage.setItem('rfi_submissions', JSON.stringify(submittedForms));
+        }
+
+        function calculateAndPublishResults(subIdx) {
+            const sub = submittedForms[subIdx];
+            let score = 0;
+
+            sub.responses.forEach(resp => {
+                if (resp.type === 'radio') {
+                    if (resp.userAnswer === resp.expectedAnswer) {
+                        score += 1;
+                    }
+                } else {
+                    const writtenMark = sub.gradingMarks[resp.questionId] || 0;
+                    score += parseFloat(writtenMark);
+                }
             });
 
-            // Update Logs Layout Screen Box View Live
-            const logBox = document.getElementById('adminLogsContainer');
-            if(registeredLogsArray.length > 0) {
-                logBox.innerHTML = '';
-                logBox.className = "bg-[#0b0f19] border border-gray-800 rounded-xl p-3 text-left space-y-2 max-h-60 overflow-y-auto";
-                registeredLogsArray.forEach((log) => {
-                    let record = document.createElement('div');
-                    record.className = "bg-[#131a2c] border border-gray-800 p-2.5 rounded-lg text-[11px] font-mono leading-relaxed";
-                    record.innerHTML = `<span class="text-purple-400 font-bold">[${log.timestamp}]</span> <span class="text-blue-400 font-bold">${log.formName}:</span> <span class="text-gray-300">${log.answers}</span>`;
-                    logBox.appendChild(record);
-                });
-            } else {
-                logBox.className = "bg-[#0b0f19] border border-gray-800 rounded-xl p-8 text-center text-gray-600 text-sm font-semibold";
-                logBox.innerText = "No active runtime form log streams detected.";
-            }
+            sub.finalScore = score;
+            localStorage.setItem('rfi_submissions', JSON.stringify(submittedForms));
+            renderAdminGraderConsole();
+            alert(`Results calculated! Final Marks score total of ${score} compiled for ${sub.applicant.roblox}.`);
         }
 
-        function toggleStatusState() {
-            const btn = document.getElementById('statusToggleBtn');
-            if (targetStatusMode === "OPEN") {
-                targetStatusMode = "CLOSED";
-                btn.innerText = "CLOSED / LOCKED";
-                btn.className = "bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition shadow-md cursor-pointer";
-            } else {
-                targetStatusMode = "OPEN";
-                btn.innerText = "OPEN / ACTIVE";
-                btn.className = "bg-green-600 hover:bg-green-500 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition shadow-md cursor-pointer";
-            }
+        function finalizeSubmissionStatus(subIdx, statusText) {
+            submittedForms[subIdx].status = statusText;
+            localStorage.setItem('rfi_submissions', JSON.stringify(submittedForms));
+            renderAdminGraderConsole();
+            alert(`Candidate submission entry finalized as: ${statusText}`);
         }
-
-        function applyStatusChange() {
-            const selectedId = document.getElementById('statusTargetRegistry').value;
-            const appObj = dynamicRegistryData.find(app => app.id === selectedId);
-            if(appObj) {
-                appObj.status = targetStatusMode;
-                updateAdminDOM();
-            }
-        }
-
-        function toggleGlobalStatusBulk(targetMode) {
-            dynamicRegistryData.forEach(app => app.status = targetMode);
-            updateAdminDOM();
-        }
-
-        function createNewBlueprint() {
-            const nameInput = document.getElementById('newFormName');
-            if(!nameInput.value.trim()) return;
-
-            let computedId = nameInput.value.toLowerCase().replace(/[^a-z0-9]/g, '-');
-            let computedCode = nameInput.value.toLowerCase().split(' ')[0] || "gen";
-
-            dynamicRegistryData.push({
-                id: computedId,
-                name: nameInput.value.trim(),
-                code: computedCode,
-                status: "OPEN",
-                questions: ["Sample Evaluation metric prompt text entry field configuration"]
-            });
-
-            nameInput.value = '';
-            updateAdminDOM();
-        }
-
-        function deleteQuestion(appId, qIndex) {
-            const app = dynamicRegistryData.find(a => a.id === appId);
-            if(app) {
-                app.questions.splice(qIndex, 1);
-                updateAdminDOM();
-            }
-        }
-
-        function deleteEntireForm(appId) {
-            dynamicRegistryData = dynamicRegistryData.filter(a => a.id !== appId);
-            updateAdminDOM();
-        }
-
-        // Initialize setup view layout states
-        window.onload = function() {
-            switchAuthView('login');
-        };
     </script>
 </body>
 </html>
