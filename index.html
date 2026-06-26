@@ -3,1149 +3,566 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RFI - Application System</title>
+    <title>RFI Comprehensive Gateway & Management HQ</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #0b0f19;
-            color: #f3f4f6;
-        }
-        .glass {
-            background: rgba(17, 24, 39, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.6);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(59, 130, 246, 0.5);
-            border-radius: 4px;
-        }
-    </style>
 </head>
-<body class="min-h-screen relative overflow-x-hidden custom-scrollbar">
+<body class="bg-[#0b0f19] text-gray-200 font-sans min-h-screen relative">
 
-    <div id="loadingScreen" class="fixed inset-0 z-50 bg-[#070a12] flex flex-col items-center justify-center transition-all duration-700 ease-in-out">
-        <div class="relative flex flex-col items-center">
-            <div class="w-24 h-24 rounded-full border-4 border-t-blue-500 border-r-indigo-500 border-b-purple-500 border-l-transparent animate-spin mb-6"></div>
-            <div class="absolute top-7 text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 animate-pulse">RFI</div>
-            <h2 class="text-2xl font-bold tracking-widest text-white mb-2">INITIALIZING SYSTEM</h2>
-            <p class="text-xs text-gray-400 tracking-wider uppercase mb-6" id="loadingStatus">Loading configuration metrics...</p>
-            <div class="w-64 h-2 bg-gray-800 rounded-full overflow-hidden border border-gray-700/50">
-                <div id="loadingProgress" class="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 w-0 transition-all duration-300 ease-out"></div>
+    <div id="authContainer" class="fixed inset-0 bg-[#0b0f19] z-50 flex items-center justify-center p-4">
+        <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 w-32 h-32 bg-purple-600/10 rounded-full blur-2xl"></div>
+            
+            <div class="flex flex-col items-center text-center mb-6">
+                <div class="p-4 bg-purple-600 rounded-2xl shadow-lg shadow-purple-900/40 mb-3">
+                    <i id="authIcon" class="fas fa-terminal text-2xl text-white"></i>
+                </div>
+                <h1 id="authTitle" class="text-xl font-black tracking-wide text-white uppercase">RFI Secure Gateway</h1>
+                <p id="authSubtitle" class="text-xs font-bold text-purple-400 tracking-widest uppercase mt-1">Authentication Module v4.0</p>
             </div>
+
+            <div id="loginView" class="space-y-4">
+                <form onsubmit="handleAuthAction(event, 'login')" class="space-y-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Email Address</label>
+                        <input type="email" required class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-purple-500 transition" placeholder="name@domain.com">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Password</label>
+                        <input type="password" required class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-purple-500 transition" placeholder="••••••••">
+                    </div>
+                    <div class="text-right">
+                        <button type="button" onclick="switchAuthView('forgot')" class="text-[11px] text-purple-400 hover:underline cursor-pointer">Forgot Password?</button>
+                    </div>
+                    <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-widest transition shadow-lg cursor-pointer">
+                        Sign In to Profile
+                    </button>
+                </form>
+                
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-gray-800"></div>
+                    <span class="flex-shrink mx-3 text-gray-500 text-[10px] font-bold uppercase tracking-wider">Administrative Access</span>
+                    <div class="flex-grow border-t border-gray-800"></div>
+                </div>
+
+                <button onclick="enterSession('admin')" class="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs uppercase tracking-widest transition border border-gray-700 cursor-pointer flex items-center justify-center gap-2">
+                    Bypass to Admin Headquarters <i class="fas fa-shield-alt text-purple-400"></i>
+                </button>
+
+                <p class="text-xs text-gray-400 text-center mt-4">
+                    New operative? <button onclick="switchAuthView('register')" class="text-purple-400 font-bold hover:underline cursor-pointer">Create an account</button>
+                </p>
+            </div>
+
+            <div id="registerView" class="space-y-4 hidden">
+                <form onsubmit="handleAuthAction(event, 'register')" class="space-y-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Full Operative Name</label>
+                        <input type="text" required class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-purple-500 transition" placeholder="John Doe">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Email Address</label>
+                        <input type="email" required class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-purple-500 transition" placeholder="name@domain.com">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Create Password</label>
+                        <input type="password" required class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-purple-500 transition" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-widest transition shadow-lg cursor-pointer">
+                        Register Account Modules
+                    </button>
+                </form>
+                <p class="text-xs text-gray-400 text-center mt-2">
+                    Already registered? <button onclick="switchAuthView('login')" class="text-purple-400 font-bold hover:underline cursor-pointer">Log In</button>
+                </p>
+            </div>
+
+            <div id="forgotView" class="space-y-4 hidden">
+                <p class="text-xs text-gray-400 leading-relaxed text-center">Enter your registered matrix communications email, and we will dispatch a terminal bypass sequence link.</p>
+                <form onsubmit="handleAuthAction(event, 'forgot')" class="space-y-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Email Address</label>
+                        <input type="email" required class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-purple-500 transition" placeholder="name@domain.com">
+                    </div>
+                    <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-widest transition shadow-lg cursor-pointer">
+                        Send Recovery Dispatch
+                    </button>
+                </form>
+                <p class="text-xs text-gray-400 text-center mt-2">
+                    Remembered credentials? <button onclick="switchAuthView('login')" class="text-purple-400 font-bold hover:underline cursor-pointer">Back to Login</button>
+                </p>
+            </div>
+
         </div>
     </div>
 
-    <div id="appContainer" class="hidden min-h-screen flex flex-col">
-        <header class="glass sticky top-0 z-40 px-6 py-4 flex items-center justify-between shadow-2xl">
-            <div class="flex items-center gap-3">
-                <div class="bg-gradient-to-tr from-blue-600 to-purple-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20">
-                    <i class="fa-solid fa-shield-halved text-xl text-white"></i>
+
+    <div id="userHubLayer" class="hidden p-6 max-w-5xl mx-auto">
+        <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-6 mb-6 flex justify-between items-center shadow-2xl">
+            <div class="flex items-center gap-4">
+                <div class="p-4 bg-blue-600 rounded-xl shadow-lg">
+                    <i class="fas fa-file-contract text-2xl text-white"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-extrabold tracking-tight text-white">RFI</h1>
-                    <p class="text-xs text-blue-400 font-medium tracking-wider">PORTAL INTERFACE</p>
+                    <h1 class="text-2xl font-black tracking-wide text-white uppercase">RFI Application Registry Hub</h1>
+                    <p class="text-xs font-bold text-blue-400 tracking-widest uppercase mt-0.5">Operative Workspace: Fill Active Deployments</p>
                 </div>
             </div>
+            <button onclick="logoutSession()" class="bg-[#1e293b] hover:bg-gray-800 text-gray-400 hover:text-white font-bold px-4 py-2 rounded-xl text-sm transition border border-gray-700 cursor-pointer">
+                Exit Session
+            </button>
+        </div>
 
-            <div class="flex items-center gap-4">
-                <div id="navSessionActions" class="hidden flex items-center gap-3">
-                    <span id="userGreeting" class="text-sm font-semibold text-gray-300 hidden md:inline bg-gray-800/60 px-3 py-1.5 rounded-lg border border-gray-700"></span>
-                    
-                    <button onclick="toggleCreditsModal(true)" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 hover:from-amber-500/20 hover:to-yellow-500/20 border border-amber-500/30 hover:border-amber-500/60 text-amber-400 rounded-xl font-medium text-sm transition-all duration-300 shadow-sm cursor-pointer">
-                        <i class="fa-solid fa-crown text-xs"></i> Credits
-                    </button>
-
-                    <button id="adminPanelBtn" onclick="openAdminPanel()" class="hidden flex items-center gap-2 px-4 py-2 bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/40 text-purple-300 rounded-xl font-medium text-sm transition-all duration-300 cursor-pointer">
-                        <i class="fa-solid fa-toolbox"></i> Admin Control
-                    </button>
-
-                    <button onclick="handleLogOut()" class="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 text-red-400 rounded-xl font-medium text-sm transition-all duration-300 cursor-pointer">
-                        <i class="fa-solid fa-right-from-bracket text-xs"></i> Log Out
-                    </button>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <div id="userRegistrySelectionBox" class="md:col-span-5 space-y-3">
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest px-2">Active Registries Available</h2>
                 </div>
-                
-                <div id="navGuestActions" class="flex items-center text-xs text-gray-400 bg-gray-900 px-3 py-1.5 rounded-lg border border-gray-800">
-                    <i class="fa-solid fa-lock mr-2 text-gray-500"></i> Guest Authorization Required
-                </div>
-            </div>
-        </header>
 
-        <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 flex flex-col justify-center items-center">
-            
-            <div id="systemClosedState" class="hidden max-w-md w-full glass p-8 rounded-3xl text-center border-red-500/20 shadow-2xl shadow-red-900/10 my-auto">
-                <div class="w-16 h-16 bg-red-500/15 text-red-400 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-500/30">
-                    <i class="fa-solid fa-circle-xmark text-3xl"></i>
+            <div class="md:col-span-7">
+                <div id="blankFormPlaceholder" class="bg-[#131a2c] border border-gray-800 rounded-2xl p-8 text-center text-gray-500 font-semibold shadow-xl h-64 flex flex-col justify-center items-center">
+                    <i class="fas fa-arrow-left text-2xl text-purple-500/30 mb-3 animate-bounce"></i>
+                    <p class="text-xs uppercase tracking-wider">Select an application form card array from the left column layout to initialize data entry fields.</p>
                 </div>
-                <h3 class="text-2xl font-bold text-white mb-2">Applications Suspended</h3>
-                <p class="text-gray-400 text-sm mb-6 leading-relaxed">The RFI Administration board has temporarily taken forms and submissions offline. Please check back later.</p>
-                <button onclick="openAdminPanel()" class="w-full py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl font-semibold transition-all border border-gray-700 cursor-pointer">Access Admin Console</button>
-            </div>
 
-            <div id="authWrapper" class="max-w-md w-full glass p-8 rounded-3xl shadow-2xl my-auto transition-all duration-300 transform">
-                
-                <div id="loginFormSection">
-                    <div class="mb-6 text-center">
-                        <h3 class="text-2xl font-extrabold text-white">Welcome to RFI Portal</h3>
-                        <p class="text-sm text-gray-400 mt-1">Provide credentials to verify clearance</p>
+                <div id="activeFormFillCard" class="hidden bg-[#131a2c] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
+                    <div class="border-b border-gray-800 pb-3 flex justify-between items-center">
+                        <h2 id="fillFormTitleHeader" class="text-sm font-black uppercase text-white tracking-wide">Submission Terminal</h2>
+                        <button onclick="clearActiveFillForm()" class="text-gray-500 hover:text-gray-400 text-xs"><i class="fas fa-times"></i></button>
                     </div>
-                    <form onsubmit="handleLogIn(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold tracking-wider uppercase text-gray-400 mb-1.5">Roblox Username</label>
-                            <input type="text" id="loginRoblox" required autocomplete="off" class="w-full bg-gray-900/80 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold tracking-wider uppercase text-gray-400 mb-1.5">Discord Username</label>
-                            <input type="text" id="loginDiscord" required autocomplete="off" class="w-full bg-gray-900/80 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all text-sm">
-                        </div>
-                        <div>
-                            <div class="flex justify-between items-center mb-1.5">
-                                <label class="block text-xs font-bold tracking-wider uppercase text-gray-400">Password</label>
-                                <button type="button" onclick="switchAuthView('forgot')" class="text-xs text-blue-400 hover:underline cursor-pointer">Forgot Password?</button>
+                    <form onsubmit="dispatchFilledApplicationData(event)" class="space-y-4">
+                        <div id="interactiveFieldsLoadingArea" class="space-y-4">
                             </div>
-                            <input type="password" id="loginPass" required autocomplete="off" class="w-full bg-gray-900/80 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all text-sm">
-                        </div>
-                        <button type="submit" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20 mt-2 cursor-pointer">Authenticate Log In</button>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-widest transition shadow-lg shadow-blue-900/40 cursor-pointer">
+                            Submit Application Blueprint Data
+                        </button>
                     </form>
-                    <div class="mt-6 text-center border-t border-gray-800/80 pt-4">
-                        <p class="text-sm text-gray-400">Need an operational file? <button onclick="switchAuthView('register')" class="text-blue-400 font-bold hover:underline cursor-pointer">Register New Account</button></p>
-                    </div>
-                </div>
-
-                <div id="registerFormSection" class="hidden">
-                    <div class="mb-6 text-center">
-                        <h3 class="text-2xl font-extrabold text-white">Create Portal Profile</h3>
-                        <p class="text-sm text-gray-400 mt-1">Register user configurations into databases</p>
-                    </div>
-                    <form onsubmit="handleRegistration(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold tracking-wider uppercase text-gray-400 mb-1.5">Roblox Username</label>
-                            <input type="text" id="regRoblox" required autocomplete="off" class="w-full bg-gray-900/80 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold tracking-wider uppercase text-gray-400 mb-1.5">Discord Username</label>
-                            <input type="text" id="regDiscord" required autocomplete="off" class="w-full bg-gray-900/80 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold tracking-wider uppercase text-gray-400 mb-1.5">Account Security Password</label>
-                            <input type="password" id="regPass" required autocomplete="off" class="w-full bg-gray-900/80 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all text-sm">
-                        </div>
-                        <button type="submit" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-600/20 mt-2 cursor-pointer">Complete Registration</button>
-                    </form>
-                    <div class="mt-6 text-center border-t border-gray-800/80 pt-4">
-                        <p class="text-sm text-gray-400">Already registered? <button onclick="switchAuthView('login')" class="text-blue-400 font-bold hover:underline cursor-pointer">Login Here</button></p>
-                    </div>
-                </div>
-
-                <div id="forgotFormSection" class="hidden">
-                    <div class="mb-6 text-center">
-                        <h3 class="text-2xl font-extrabold text-white">Reset Credentials</h3>
-                        <p class="text-sm text-gray-400 mt-1">Locate user configuration file to change secure pass</p>
-                    </div>
-                    <form onsubmit="handlePasswordReset(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold tracking-wider uppercase text-gray-400 mb-1.5">Roblox Username Verification</label>
-                            <input type="text" id="forgotRoblox" required autocomplete="off" class="w-full bg-gray-900/80 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold tracking-wider uppercase text-gray-400 mb-1.5">Enter New Secure Password</label>
-                            <input type="password" id="forgotNewPass" required autocomplete="off" class="w-full bg-gray-900/80 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all text-sm">
-                        </div>
-                        <button type="submit" class="w-full py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-amber-600/20 mt-2 cursor-pointer">Overwrite System Password</button>
-                    </form>
-                    <div class="mt-6 text-center border-t border-gray-800/80 pt-4">
-                        <button onclick="switchAuthView('login')" class="text-sm text-gray-400 font-bold hover:text-white transition-colors cursor-pointer"><i class="fa-solid fa-arrow-left mr-2"></i>Return to Login</button>
-                    </div>
                 </div>
             </div>
-
-            <div id="portalDashboard" class="hidden w-full max-w-5xl space-y-8 animate-fadeIn">
-                <div class="glass p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 border-l-4 border-l-blue-500">
-                    <div>
-                        <h2 class="text-xl font-extrabold text-white flex items-center gap-2">Welcome Back, <span id="dashboardUsername" class="text-blue-400">User</span>!</h2>
-                        <p class="text-xs text-gray-400 mt-1">Select one of the recruitment divisions below to init or view scores.</p>
-                    </div>
-                    <div id="userGlobalStatusBox" class="text-right">
-                        </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="applicationCardsGrid">
-                    </div>
-            </div>
-
-            <div id="applicationFormContainer" class="hidden w-full max-w-4xl glass p-6 md:p-8 rounded-3xl shadow-2xl relative">
-                <div class="flex items-center justify-between border-b border-gray-800 pb-4 mb-6">
-                    <div>
-                        <h2 id="activeFormTitle" class="text-2xl font-black text-white">Form Execution</h2>
-                        <p id="activeFormSubtitle" class="text-xs text-gray-400 mt-1">Ensure compliance with division rules during submissions</p>
-                    </div>
-                    <button onclick="returnToDashboard()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 rounded-xl text-sm font-semibold transition-all cursor-pointer">
-                        <i class="fa-solid fa-xmark mr-1"></i> Quit Form
-                    </button>
-                </div>
-
-                <form onsubmit="handleFormSubmission(event)" id="dynamicApplicationInjectForm" class="space-y-8">
-                    </form>
-            </div>
-
-        </main>
+        </div>
     </div>
 
-    <div id="creditsModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-md">
-        <div class="glass max-w-xl w-full rounded-3xl border-amber-500/30 overflow-hidden shadow-2xl shadow-amber-900/15 transform scale-95 transition-transform duration-300">
-            <div class="bg-gradient-to-r from-amber-600/20 via-yellow-600/10 to-transparent p-6 border-b border-amber-500/20 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center border border-amber-500/30 shadow-inner">
-                        <i class="fa-solid fa-crown text-lg animate-pulse"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-xl font-extrabold text-white tracking-wide">RFI Organization Credits</h4>
-                        <p class="text-xs text-amber-400 font-medium tracking-wider uppercase">RailForce:India Project Board</p>
-                    </div>
+
+    <div id="adminHeadquarters" class="hidden p-6">
+        
+        <div class="max-w-7xl mx-auto bg-[#131a2c] border border-gray-800 rounded-2xl p-6 mb-6 flex flex-col md:flex-row justify-between items-center shadow-2xl gap-4">
+            <div class="flex items-center gap-4">
+                <div class="p-4 bg-purple-600 rounded-xl shadow-lg shadow-purple-900/50">
+                    <i class="fas fa-cogs text-2xl text-white"></i>
                 </div>
-                <button onclick="toggleCreditsModal(false)" class="w-8 h-8 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center text-gray-400 hover:text-white transition-colors cursor-pointer">
-                    <i class="fa-solid fa-xmark"></i>
+                <div>
+                    <h1 class="text-2xl font-black tracking-wide text-white uppercase">RFI Administrative Headquarters</h1>
+                    <p class="text-xs font-bold text-purple-400 tracking-widest uppercase mt-0.5">Secure Configuration Engine Access Portal</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleGlobalStatusBulk('OPEN')" class="bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 border border-gray-700 cursor-pointer">
+                    <i class="fas fa-folder-open text-gray-400"></i> OPEN
+                </button>
+                <button onclick="toggleGlobalStatusBulk('CLOSED')" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-lg shadow-red-900/40 cursor-pointer">
+                    <i class="fas fa-lock"></i> CLOSE
+                </button>
+                <button onclick="logoutSession()" class="bg-[#1e293b] hover:bg-gray-800 text-gray-400 hover:text-white font-bold px-4 py-2 rounded-xl text-sm transition border border-gray-700 cursor-pointer">
+                    Exit Session
                 </button>
             </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+            <div class="lg:col-span-4 flex flex-col gap-6">
                 
-                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-amber-500/10 to-gray-900/40 rounded-2xl border border-amber-500/30 hover:border-amber-500/60 transition-all shadow-md group">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-amber-500 text-gray-950 rounded-xl flex items-center justify-center text-xl font-bold shadow-lg group-hover:scale-105 transition-transform">
-                            <i class="fa-solid fa-crown"></i>
-                        </div>
+                <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-5 shadow-xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-md font-black uppercase tracking-wider text-white flex items-center gap-2">
+                            <i class="fas fa-toggle-on text-purple-400"></i> Registry Status Engine
+                        </h2>
+                    </div>
+                    
+                    <div class="space-y-4">
                         <div>
-                            <h5 class="text-lg font-bold text-white group-hover:text-amber-300 transition-colors">@DrCreative07</h5>
-                            <p class="text-xs text-amber-400/90 font-medium tracking-wider uppercase">Owner of RailForce:India</p>
-                        </div>
-                    </div>
-                    <div class="text-xs font-mono font-bold tracking-widest text-amber-400/50 bg-amber-500/5 px-2.5 py-1 rounded border border-amber-500/10">FOUNDER</div>
-                </div>
-
-                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-500/10 to-gray-900/40 rounded-2xl border border-blue-500/20 hover:border-blue-500/50 transition-all shadow-sm group">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-blue-500 text-slate-950 rounded-xl flex items-center justify-center text-xl font-bold shadow-lg group-hover:scale-105 transition-transform">
-                            <i class="fa-solid fa-star-of-life"></i>
-                        </div>
-                        <div>
-                            <h5 class="text-lg font-bold text-white group-hover:text-blue-300 transition-colors">@TSGYT9</h5>
-                            <p class="text-xs text-blue-400/90 font-medium tracking-wider uppercase">Co-owner of RailForce:India</p>
-                        </div>
-                    </div>
-                    <div class="text-xs font-mono font-bold tracking-widest text-blue-400/50 bg-blue-500/5 px-2.5 py-1 rounded border border-blue-500/10">EXECUTIVE</div>
-                </div>
-
-                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-purple-500/10 to-gray-900/40 rounded-2xl border border-purple-500/20 hover:border-purple-500/50 transition-all shadow-sm group">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-purple-500 text-slate-950 rounded-xl flex items-center justify-center text-xl font-bold shadow-lg group-hover:scale-105 transition-transform">
-                            <i class="fa-solid fa-hammer"></i>
-                        </div>
-                        <div>
-                            <h5 class="text-lg font-bold text-white group-hover:text-purple-300 transition-colors">@sarthak22220</h5>
-                            <p class="text-xs text-purple-400/90 font-medium tracking-wider uppercase">Website Maker & Architect</p>
-                        </div>
-                    </div>
-                    <div class="text-xs font-mono font-bold tracking-widest text-purple-400/50 bg-purple-500/5 px-2.5 py-1 rounded border border-purple-500/10">DEV CORE</div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <div id="adminPanelModal" class="hidden fixed inset-0 z-50 bg-slate-950/95 overflow-y-auto custom-scrollbar p-4 md:p-8">
-        <div class="max-w-7xl w-full mx-auto space-y-8">
-            <div class="glass p-6 rounded-3xl border-purple-500/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 bg-gradient-to-tr from-purple-600 to-indigo-600 text-white rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-purple-900/30">
-                        <i class="fa-solid fa-gears"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-black text-white tracking-tight">RFI Administrative Headquarters</h2>
-                        <p class="text-xs text-purple-400 font-semibold tracking-wider">SECURE CONFIGURATION ENGINE ACCESS PORTAL</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-3 w-full md:w-auto">
-                    <div class="flex items-center bg-gray-900 border border-gray-800 rounded-xl p-1">
-                        <button id="sysBtnOpen" onclick="setSystemGlobalState(true)" class="px-4 py-2 font-bold text-xs rounded-lg transition-all cursor-pointer">
-                            <i class="fa-solid fa-door-open mr-1"></i> OPEN
-                        </button>
-                        <button id="sysBtnClose" onclick="setSystemGlobalState(false)" class="px-4 py-2 font-bold text-xs rounded-lg transition-all cursor-pointer">
-                            <i class="fa-solid fa-door-closed mr-1"></i> CLOSE
-                        </button>
-                    </div>
-                    <button onclick="closeAdminPanel()" class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-200 rounded-xl font-bold transition-all text-sm cursor-pointer ml-auto md:ml-0">
-                        Exit Session
-                    </button>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-1 space-y-6">
-                    <div class="glass p-6 rounded-2xl border-purple-500/10 space-y-4">
-                        <h3 class="text-lg font-black text-white border-b border-gray-800 pb-2 flex items-center justify-between">
-                            <span>Form Blueprint Manager</span>
-                            <i class="fa-solid fa-folder-plus text-purple-400"></i>
-                        </h3>
-                        
-                        <div class="space-y-3 bg-gray-900/60 p-4 rounded-xl border border-gray-800">
-                            <h4 class="text-xs font-bold text-purple-300 uppercase tracking-widest">Deploy New Form Type</h4>
-                            <div>
-                                <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Form/Card Name Code</label>
-                                <input type="text" id="newFormName" placeholder="e.g., HR Department" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-purple-500">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Description Brief</label>
-                                <textarea id="newFormDesc" placeholder="Describe the deployment criteria..." class="w-full h-16 bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-purple-500 custom-scrollbar resize-none"></textarea>
-                            </div>
-                            <button onclick="adminCreateNewForm()" class="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-lg transition-all cursor-pointer shadow">Instantiate Blueprint</button>
-                        </div>
-
-                        <div class="space-y-3 bg-gray-900/60 p-4 rounded-xl border border-gray-800">
-                            <h4 class="text-xs font-bold text-purple-300 uppercase tracking-widest">Inject Question Module</h4>
-                            <div>
-                                <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Target Form Registry</label>
-                                <select id="questionTargetForm" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none"></select>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Section Classification</label>
-                                <select id="questionTargetSection" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none">
-                                    <option value="mcq">Multiple Choice Section (Automated Grading)</option>
-                                    <option value="written">Written Responses Section (Manual Grading)</option>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Target Application Registry</label>
+                            <select id="statusTargetRegistry" class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-3 text-sm text-gray-300 focus:outline-none focus:border-purple-500 transition">
                                 </select>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Question Description String</label>
-                                <input type="text" id="questionString" placeholder="Provide the prompt query..." class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none">
-                            </div>
-                            <div id="mcqOptionsConfigBlock" class="space-y-1.5 pt-1">
-                                <label class="block text-[10px] text-amber-400 font-bold uppercase tracking-wider">Provide MCQ Answers & Declare Correct Key</label>
-                                <div class="flex items-center gap-1.5"><input type="radio" name="mcqCorrectKey" value="A" checked><input type="text" id="mcqOptA" placeholder="Option A" class="w-full bg-gray-950 border border-gray-800 rounded px-2 py-1 text-white text-[11px]"></div>
-                                <div class="flex items-center gap-1.5"><input type="radio" name="mcqCorrectKey" value="B"><input type="text" id="mcqOptB" placeholder="Option B" class="w-full bg-gray-950 border border-gray-800 rounded px-2 py-1 text-white text-[11px]"></div>
-                                <div class="flex items-center gap-1.5"><input type="radio" name="mcqCorrectKey" value="C"><input type="text" id="mcqOptC" placeholder="Option C" class="w-full bg-gray-950 border border-gray-800 rounded px-2 py-1 text-white text-[11px]"></div>
-                                <div class="flex items-center gap-1.5"><input type="radio" name="mcqCorrectKey" value="D"><input type="text" id="mcqOptD" placeholder="Option D" class="w-full bg-gray-950 border border-gray-800 rounded px-2 py-1 text-white text-[11px]"></div>
-                            </div>
-                            <button onclick="adminInjectQuestion()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-lg transition-all cursor-pointer">Append Question Module</button>
                         </div>
+
+                        <div class="flex items-center justify-between bg-[#0b0f19] p-3 border border-gray-800 rounded-xl">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Requested Status Mode</span>
+                            <button id="statusToggleBtn" onclick="toggleStatusState()" class="bg-green-600 hover:bg-green-500 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition shadow-md shadow-green-900/30 cursor-pointer">
+                                OPEN / ACTIVE
+                            </button>
+                        </div>
+
+                        <button onclick="applyStatusChange()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-widest transition shadow-lg shadow-purple-900/40 cursor-pointer">
+                            Apply Status Config Change
+                        </button>
                     </div>
                 </div>
 
-                <div class="lg:col-span-2 space-y-6">
-                    <div class="glass p-6 rounded-2xl border-purple-500/10">
-                        <h3 class="text-lg font-black text-white border-b border-gray-800 pb-2 mb-4 flex items-center justify-between">
-                            <span>Form Inventory Blueprint Breakdown</span>
-                            <span class="text-xs text-gray-400">Add or Remove Live Prompts</span>
-                        </h3>
-                        <div id="adminFormInspectorStack" class="space-y-4 max-h-[35vh] overflow-y-auto custom-scrollbar pr-2">
-                            </div>
+                <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-5 shadow-xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-md font-black uppercase tracking-wider text-white">Form Blueprint Manager</h2>
+                        <i class="fas fa-folder-plus text-purple-400 text-sm"></i>
                     </div>
-
-                    <div class="glass p-6 rounded-2xl border-purple-500/10">
-                        <h3 class="text-lg font-black text-white border-b border-gray-800 pb-2 mb-4 flex items-center justify-between">
-                            <span>User Application Evaluation Matrix Logs</span>
-                            <i class="fa-solid fa-file-signature text-purple-400"></i>
-                        </h3>
-                        <div id="adminSubmissionsTableContainer" class="overflow-x-auto custom-scrollbar">
-                            </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Deploy New Form Type</label>
+                            <input type="text" id="newFormName" placeholder="e.g., HR Department" class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-3 text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500 transition text-gray-300">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Description Brief</label>
+                            <textarea id="newFormDesc" rows="3" placeholder="Describe the deployment criteria..." class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-3 text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500 transition text-gray-300 resize-none"></textarea>
+                        </div>
+                        <button onclick="createNewBlueprint()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-widest transition shadow-lg shadow-purple-900/40 cursor-pointer">
+                            Instantiate Blueprint
+                        </button>
                     </div>
                 </div>
             </div>
+
+            <div class="lg:col-span-8 flex flex-col gap-6">
+                
+                <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-6 shadow-xl flex-1">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-md font-black uppercase tracking-wider text-white">Form Inventory Blueprint Breakdown</h2>
+                        <span class="text-xs text-gray-500 font-semibold">Add or Remove Live Prompts</span>
+                    </div>
+                    
+                    <div id="blueprintContainer" class="space-y-4">
+                        </div>
+                </div>
+
+                <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-6 shadow-xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-md font-black uppercase tracking-wider text-white">User Application Evaluation Matrix Logs</h2>
+                        <i class="fas fa-signature text-purple-400"></i>
+                    </div>
+                    <div id="adminLogsContainer" class="bg-[#0b0f19] border border-gray-800 rounded-xl p-8 text-center text-gray-600 text-sm font-semibold max-h-60 overflow-y-auto">
+                        No active runtime form log streams detected.
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
+
 
     <script>
-        // CONFIG MASTER SYSTEM PASSWORDS
-        const ADMIN_ACCESS_PASSCODE = "RFIADMINPASS";
-
-        // APP CENTRAL DATA STATE CORE DATASET
-        let state = {
-            systemOpen: true,
-            currentUser: null,
-            users: {},
-            forms: {},
-            submissions: []
-        };
-
-        // PRE-CONSTRUCTED SYSTEM SECTIONS QUESTION METRICS DATA DICTIONARIES
-        const SEED_DATA = {
-            forms: {
-                "tester": {
-                    id: "tester",
-                    name: "Tester Application",
-                    desc: "Apply to run test evaluations, explore critical environment structures, catch bugs, track system anomalies, and generate quality assurance documentation.",
-                    sections: {
-                        mcq: [
-                            { id: "t_m1", q: "What should you do first when you find a bug?", options: { A: "Ignore it", B: "Report it properly with details", C: "Leak it to players", D: "Delete the game" }, correct: "B" },
-                            { id: "t_m2", q: "What is the main purpose of game testing?", options: { A: "Exploiting", B: "Finding bugs and improving gameplay", C: "Banning users", D: "Advertising the game" }, correct: "B" },
-                            { id: "t_m3", q: "Which is most important in a bug report?", options: { A: "Clear reproduction steps", B: "Fancy formatting", C: "Random emojis", D: "Short messages only" }, correct: "A" },
-                            { id: "t_m4", q: "What should you do if a bug only happens sometimes?", options: { A: "Ignore it", B: "Keep testing and gather proof", C: "Leak it publicly", D: "Quit testing" }, correct: "B" },
-                            { id: "t_m5", q: "What quality is important for a tester?", options: { A: "Patience", B: "Toxic behavior", C: "Favoritism", D: "Spamming" }, correct: "A" },
-                            { id: "t_m6", q: "What should testers do after an update releases?", options: { A: "Test the new features", B: "Ignore the update", C: "Ban players", D: "Stop testing" }, correct: "A" },
-                            { id: "t_m7", q: "What does “reproducing a bug” mean?", options: { A: "Creating bugs", B: "Making the bug happen again", C: "Removing the bug", D: "Hiding the issue" }, correct: "B" },
-                            { id: "t_m8", q: "Why is testing on multiple devices useful?", options: { A: "It helps find device-specific issues", B: "It wastes time", C: "It lowers performance", D: "It is unnecessary" }, correct: "A" },
-                            { id: "t_m9", q: "What should testers avoid doing?", options: { A: "Reporting bugs", B: "Leaking confidential information", C: "Recording evidence", D: "Giving feedback" }, correct: "B" },
-                            { id: "t_m10", q: "If a developer disagrees with your report, what should you do?", options: { A: "Stay respectful and explain clearly", B: "Start arguing", C: "Spam messages", D: "Leave immediately" }, correct: "A" }
-                        ],
-                        written: [
-                            { id: "t_w1", q: "What would you do if you found a bug in a Roblox game?" },
-                            { id: "t_w2", q: "How would you write a bug report so developers can reproduce the issue?" },
-                            { id: "t_w3", q: "Describe a bug you have found in a Roblox game before." },
-                            { id: "t_w4", q: "What information should be included when reporting a bug?" },
-                            { id: "t_w5", q: "How would you test whether a new update has broken an existing feature?" },
-                            { id: "t_w6", q: "If a player reports that a quest is not working, how would you investigate the problem?" },
-                            { id: "t_w7", q: "What is the difference between a bug, a glitch, and a game balance issue?" },
-                            { id: "t_w8", q: "How would you test a game pass, developer product, or in-game purchase?" },
-                            { id: "t_w9", q: "What feedback would you give developers besides reporting bugs?" },
-                            { id: "t_w10", q: "Imagine a player can walk through a wall in one area of the map. Write a complete bug report for this issue." }
-                        ]
-                    }
-                },
-                "moderation": {
-                    id: "moderation",
-                    name: "Moderation Application",
-                    desc: "Enforce operational guidelines, regulate toxic server disruptions, handle arguments objectively, and maintain optimal safety rules throughout community channels.",
-                    sections: {
-                        mcq: [
-                            { id: "m_m1", q: "What is the main responsibility of a moderator?", options: { A: "Starting arguments", B: "Keeping the community safe and peaceful", C: "Leaking chats", D: "Exploiting powers" }, correct: "B" },
-                            { id: "m_m2", q: "What should you do if two users are fighting?", options: { A: "Join the argument", B: "Calm the situation and follow rules", C: "Ignore them", D: "Ban everyone instantly" }, correct: "B" },
-                            { id: "m_m3", q: "If a member repeatedly breaks rules, what should happen?", options: { A: "Appropriappropriate punishment according to guidelines", B: "Ignore them", C: "Give special treatment", D: "Delete the server" }, correct: "A" },
-                            { id: "m_m4", q: "What should moderators avoid?", options: { A: "Bias and favoritism", B: "Helping members", C: "Reading reports", D: "Following rules" }, correct: "A" },
-                            { id: "m_m5", q: "If your friend breaks rules, what should you do?", options: { A: "Ignore it", B: "Apply rules fairly", C: "Hide evidence", D: "Blame someone else" }, correct: "B" },
-                            { id: "m_m6", q: "What does professionalism mean for moderators?", options: { A: "Respectful and mature behavior", B: "Toxic behavior", C: "Spamming users", D: "Threatening members" }, correct: "A" },
-                            { id: "m_m7", q: "What should be done before banning someone?", options: { A: "Collect evidence", B: "Guess randomly", C: "Ask random users", D: "Ban for fun" }, correct: "A" },
-                            { id: "m_m8", q: "How should moderators communicate with members?", options: { A: "Respectfully", B: "Rudely", C: "Aggressively", D: "With insults" }, correct: "A" },
-                            { id: "m_m9", q: "What should you do if you are unsure about a punishment?", options: { A: "Ask senior staff", B: "Punish randomly", C: "Ignore the issue", D: "Leak reports" }, correct: "A" },
-                            { id: "m_m10", q: "What can happen if a moderator abuses powers?", options: { A: "Promotion", B: "Removal from staff", C: "Rewards", D: "Nothing" }, correct: "B" }
-                        ],
-                        written: [
-                            { id: "m_w1", q: "Why do you want to join the moderation department?" },
-                            { id: "m_w2", q: "How would you handle a toxic member?" },
-                            { id: "m_w3", q: "What would you do if your friend broke server rules?" },
-                            { id: "m_w4", q: "How would you deal with spam or raids?" },
-                            { id: "m_w5", q: "What makes someone a good moderator?" },
-                            { id: "m_w6", q: "How active can you be daily?" },
-                            { id: "m_w7", q: "What would you do if a member argued with your punishment?" },
-                            { id: "m_w8", q: "How would you handle stressful situations during moderation?" },
-                            { id: "m_w9", q: "Why is fairness important in moderation?" },
-                            { id: "m_w10", q: "Describe a situation where you solved a conflict peacefully." }
-                        ]
-                    }
-                }
+        // Master Database Structure Configuration
+        let dynamicRegistryData = [
+            {
+                id: "tester-app",
+                name: "Tester Application",
+                code: "tester",
+                status: "OPEN",
+                questions: [
+                    "What should you do first when you find a bug?",
+                    "What is the main purpose of game testing?",
+                    "Which is most important in a bug report?",
+                    "What should you do if a bug only happens sometimes?"
+                ]
+            },
+            {
+                id: "mod-app",
+                name: "Moderator Application",
+                code: "mod",
+                status: "CLOSED",
+                questions: [
+                    "Explain your past moderation server experiences.",
+                    "How do you handle escalating conflict between users?"
+                ]
             }
-        };
+        ];
 
-        // INGEST RE-INFORCED CORE LOADER SEQUENCES
-        window.addEventListener("DOMContentLoaded", () => {
-            loadStateFromStorage();
-            executeLoadingSequence(() => {
-                document.getElementById("loadingScreen").classList.add("opacity-0", "pointer-events-none");
-                document.getElementById("appContainer").classList.remove("hidden");
-                evaluateRenderRouting();
-            });
+        let registeredLogsArray = [];
+        let targetStatusMode = "OPEN";
+        let trackingSelectedFormIdForUser = null;
 
-            // Toggle logic for checking configuration modes on runtime changes
-            document.getElementById("questionTargetSection").addEventListener("change", (e) => {
-                const block = document.getElementById("mcqOptionsConfigBlock");
-                if (e.target.value === 'mcq') {
-                    block.style.display = 'block';
-                } else {
-                    block.style.display = 'none';
-                }
-            });
-        });
+        // AUTHVIEW LAYERING COMPONENT SWITCH
+        function switchAuthView(mode) {
+            document.getElementById('loginView').classList.add('hidden');
+            document.getElementById('registerView').classList.add('hidden');
+            document.getElementById('forgotView').classList.add('hidden');
 
-        // SYSTEM DATA STATE RE-HYDRATION ARCHITECTURE
-        function loadStateFromStorage() {
-            const cache = localStorage.getItem("RFI_SYSTEM_STATE_v2");
-            if (cache) {
-                try {
-                    state = JSON.parse(cache);
-                } catch(e) {
-                    console.error("State recovery corrupted. Initializing system reset.", e);
-                    setupInitialSeeds();
-                }
+            const title = document.getElementById('authTitle');
+            const icon = document.getElementById('authIcon');
+
+            if (mode === 'login') {
+                document.getElementById('loginView').classList.remove('hidden');
+                title.innerText = "RFI Secure Gateway";
+                icon.className = "fas fa-terminal text-2xl text-white";
+            } else if (mode === 'register') {
+                document.getElementById('registerView').classList.remove('hidden');
+                title.innerText = "Operative Registry";
+                icon.className = "fas fa-user-plus text-2xl text-white";
+            } else if (mode === 'forgot') {
+                document.getElementById('forgotView').classList.remove('hidden');
+                title.innerText = "Credential Bypass";
+                icon.className = "fas fa-key text-2xl text-white";
+            }
+        }
+
+        // TRIGGER SUBMITS FOR AUTH OVERLAYS
+        function handleAuthAction(event, actionType) {
+            event.preventDefault();
+            if(actionType === 'login') {
+                enterSession('user');
+            } else if(actionType === 'register') {
+                alert("Operative registration packet saved to sequence layer! Proceeding to entry workflow.");
+                switchAuthView('login');
+            } else if(actionType === 'forgot') {
+                alert("Security dispatch link routed successfully. Inspect terminal transmission loops.");
+                switchAuthView('login');
+            }
+            event.target.reset();
+        }
+
+        // SESSION ROUTING PORTAL TRIGGERS
+        function enterSession(role) {
+            document.getElementById('authContainer').classList.add('hidden');
+            if(role === 'admin') {
+                document.getElementById('adminHeadquarters').classList.remove('hidden');
+                updateAdminDOM();
             } else {
-                setupInitialSeeds();
+                document.getElementById('userHubLayer').classList.remove('hidden');
+                updateUserDOM();
             }
         }
 
-        function setupInitialSeeds() {
-            state.forms = JSON.parse(JSON.stringify(SEED_DATA.forms));
-            state.systemOpen = true;
-            state.submissions = [];
-            state.users = {};
-            saveStateToStorage();
-        }
-
-        function saveStateToStorage() {
-            localStorage.setItem("RFI_SYSTEM_STATE_v2", JSON.stringify(state));
-        }
-
-        // SIMULATED LOADING TIMELINE
-        function executeLoadingSequence(completionCallback) {
-            const progressBar = document.getElementById("loadingProgress");
-            const statusLabel = document.getElementById("loadingStatus");
-            const metrics = [
-                { progress: 20, text: "Connecting to RFI local secure nodes..." },
-                { progress: 45, text: "Mapping structure templates & section nodes..." },
-                { progress: 70, text: "Synchronizing grading matrices & credits configuration..." },
-                { progress: 90, text: "Bypassing auto-fill indices & deploying interface..." },
-                { progress: 100, text: "System fully operational." }
-            ];
-
-            metrics.forEach((phase, index) => {
-                setTimeout(() => {
-                    progressBar.style.width = `${phase.progress}%`;
-                    statusLabel.innerText = phase.text;
-                    if (index === metrics.length - 1) {
-                        setTimeout(completionCallback, 450);
-                    }
-                }, (index + 1) * 350);
-            });
-        }
-
-        // RENDER DEPLOYER ROUTING CONTROLLER
-        function evaluateRenderRouting() {
-            const authWrapper = document.getElementById("authWrapper");
-            const portalDashboard = document.getElementById("portalDashboard");
-            const appFormContainer = document.getElementById("applicationFormContainer");
-            const systemClosedState = document.getElementById("systemClosedState");
-            const navSession = document.getElementById("navSessionActions");
-            const navGuest = document.getElementById("navGuestActions");
-
-            // Clear Dynamic UI view allocations
-            authWrapper.classList.add("hidden");
-            portalDashboard.classList.add("hidden");
-            appFormContainer.classList.add("hidden");
-            systemClosedState.classList.add("hidden");
-
-            // Evaluate state configuration variables
-            if (!state.currentUser) {
-                authWrapper.classList.remove("hidden");
-                navSession.classList.add("hidden");
-                navGuest.classList.remove("hidden");
-            } else {
-                navSession.classList.remove("hidden");
-                navGuest.classList.add("hidden");
-                document.getElementById("userGreeting").innerHTML = `<i class="fa-solid fa-user text-blue-400 mr-1.5"></i> ${state.currentUser}`;
-                
-                if (state.currentUser === 'Admin') {
-                    document.getElementById("adminPanelBtn").classList.remove("hidden");
-                } else {
-                    document.getElementById("adminPanelBtn").classList.add("hidden");
-                }
-
-                if (!state.systemOpen && state.currentUser !== 'Admin') {
-                    systemClosedState.classList.remove("hidden");
-                } else {
-                    portalDashboard.classList.remove("hidden");
-                    renderDashboardPortalHUD();
-                }
-            }
-        }
-
-        // SWAP AUTH SECTIONS VIEWPORTS
-        function switchAuthView(viewTarget) {
-            document.getElementById("loginFormSection").classList.add("hidden");
-            document.getElementById("registerFormSection").classList.add("hidden");
-            document.getElementById("forgotFormSection").classList.add("hidden");
-
-            if (viewTarget === 'login') document.getElementById("loginFormSection").classList.remove("hidden");
-            if (viewTarget === 'register') document.getElementById("registerFormSection").classList.remove("hidden");
-            if (viewTarget === 'forgot') document.getElementById("forgotFormSection").classList.remove("hidden");
-        }
-
-        // USER REGISTRATION SUB-ENGINE
-        function handleRegistration(e) {
-            e.preventDefault();
-            const rbx = document.getElementById("regRoblox").value.trim();
-            const dsc = document.getElementById("regDiscord").value.trim();
-            const pass = document.getElementById("regPass").value;
-
-            if (!rbx || !dsc || !pass) return alert("Please populate all authorization metrics.");
-
-            // Allow multiple users / overriding checks to let users create profiles seamlessly if forgotten
-            state.users[rbx.toLowerCase()] = {
-                robloxName: rbx,
-                discordName: dsc,
-                password: pass
-            };
-
-            saveStateToStorage();
-            alert(`Profile configuration for ${rbx} successfully deployed! Proceed to Log In.`);
-            e.target.reset();
+        function logoutSession() {
+            document.getElementById('adminHeadquarters').classList.add('hidden');
+            document.getElementById('userHubLayer').classList.add('hidden');
+            document.getElementById('authContainer').classList.remove('hidden');
             switchAuthView('login');
+            clearActiveFillForm();
         }
 
-        // CREDENTIAL OVERWRITE HANDLER (FORGOT PASSWORD)
-        function handlePasswordReset(e) {
-            e.preventDefault();
-            const rbx = document.getElementById("forgotRoblox").value.trim().toLowerCase();
-            const newPass = document.getElementById("forgotNewPass").value;
+        // ==========================================================
+        // USER FILL FORM RUNTIME MODULE FUNCTIONS
+        // ==========================================================
+        function updateUserDOM() {
+            const selectionBox = document.getElementById('userRegistrySelectionBox');
+            if(!selectionBox) return;
+            selectionBox.innerHTML = '<h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest px-2">Active Registries Available</h2>';
 
-            if (!state.users[rbx]) {
-                return alert("User operational configuration not found in localized registry databanks.");
-            }
-
-            state.users[rbx].password = newPass;
-            saveStateToStorage();
-            alert("Credential configurations updated. Authenticate your profile session now.");
-            e.target.reset();
-            switchAuthView('login');
-        }
-
-        // LOGIN AUTH CONTROLLER
-        function handleLogIn(e) {
-            e.preventDefault();
-            const rbx = document.getElementById("loginRoblox").value.trim();
-            const dsc = document.getElementById("loginDiscord").value.trim();
-            const pass = document.getElementById("loginPass").value;
-
-            // CHECK EXPLICIT ADMINISTRATOR SYSTEM ROUTE
-            if (rbx.toLowerCase() === 'admin' || pass === ADMIN_ACCESS_PASSCODE) {
-                if (pass === ADMIN_ACCESS_PASSCODE) {
-                    state.currentUser = "Admin";
-                    saveStateToStorage();
-                    executeLoadingSequence(() => {
-                        evaluateRenderRouting();
-                        openAdminPanel();
-                    });
-                    e.target.reset();
-                    return;
-                } else {
-                    return alert("Invalid administrative authentication passcode parameter.");
-                }
-            }
-
-            const record = state.users[rbx.toLowerCase()];
-            if (!record || record.password !== pass) {
-                return alert("Authentication metrics failure. Access denied.");
-            }
-
-            state.currentUser = record.robloxName;
-            saveStateToStorage();
-
-            executeLoadingSequence(() => {
-                evaluateRenderRouting();
-            });
-            e.target.reset();
-        }
-
-        // TERMINATE WORKSPACE SESSION
-        function handleLogOut() {
-            state.currentUser = null;
-            saveStateToStorage();
-            evaluateRenderRouting();
-        }
-
-        // CREDITS MODAL CONTROLLER
-        function toggleCreditsModal(displayState) {
-            const modal = document.getElementById("creditsModal");
-            if (displayState) {
-                modal.classList.remove("hidden");
-            } else {
-                modal.classList.add("hidden");
-            }
-        }
-
-        // RENDER USER VIEWPORT HUD CARDS
-        function renderDashboardPortalHUD() {
-            document.getElementById("dashboardUsername").innerText = state.currentUser;
-            const grid = document.getElementById("applicationCardsGrid");
-            grid.innerHTML = "";
-
-            // Calculate user summary
-            const userSubmissions = state.submissions.filter(s => s.applicant.toLowerCase() === state.currentUser.toLowerCase());
-            const statusBox = document.getElementById("userGlobalStatusBox");
-            
-            if (userSubmissions.length > 0) {
-                statusBox.innerHTML = `
-                    <span class="text-xs font-bold text-gray-400 uppercase block">Active Profiles Files Logged</span>
-                    <span class="inline-block mt-1 text-xs px-2.5 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-400 font-bold rounded-lg">${userSubmissions.length} File(s) Sent</span>
-                `;
-            } else {
-                statusBox.innerHTML = `
-                    <span class="text-xs font-bold text-gray-400 uppercase block">Security Clearance Clearance Status</span>
-                    <span class="inline-block mt-1 text-xs px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold rounded-lg">No Applications Lodged</span>
-                `;
-            }
-
-            // Generate Functional Interactive Cards dynamically
-            Object.keys(state.forms).forEach(formId => {
-                const targetForm = state.forms[formId];
-                const record = userSubmissions.find(s => s.formId === formId);
+            dynamicRegistryData.forEach((app) => {
+                let card = document.createElement('div');
+                let isOpen = app.status === "OPEN";
                 
-                let actionDOM = "";
-                if (record) {
-                    const graded = record.isGraded;
-                    const scoreText = graded ? `Graded: ${record.score} Points` : "Awaiting Evaluation Board";
-                    const statusTheme = graded ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-purple-500/10 border-purple-500/30 text-purple-400";
-                    
-                    actionDOM = `
-                        <div class="mt-4 p-3 rounded-xl border ${statusTheme} text-xs font-bold flex justify-between items-center">
-                            <span><i class="fa-solid fa-clipboard-check mr-1.5"></i> SUBMITTED</span>
-                            <span class="uppercase tracking-wider">${scoreText}</span>
-                        </div>
-                    `;
-                } else {
-                    actionDOM = `
-                        <button onclick="bootstrappedFormRuntime('${formId}')" class="mt-4 w-full py-2.5 bg-gray-800 hover:bg-blue-600 border border-gray-700 hover:border-blue-500 text-gray-300 hover:text-white text-xs font-bold tracking-wider uppercase rounded-xl transition-all cursor-pointer">
-                            Launch File Application <i class="fa-solid fa-arrow-right ml-1"></i>
-                        </button>
-                    `;
+                card.className = `border p-4 rounded-xl shadow-lg transition-all ${
+                    isOpen 
+                    ? 'bg-[#131a2c] border-gray-800 hover:border-blue-500 cursor-pointer' 
+                    : 'bg-[#101420] border-gray-900 opacity-50 cursor-not-allowed'
+                }`;
+                
+                if(isOpen) {
+                    card.onclick = () => openFillFormContainer(app.id);
                 }
 
-                const totalQuestionsCount = (targetForm.sections.mcq?.length || 0) + (targetForm.sections.written?.length || 0);
-
-                grid.innerHTML += `
-                    <div class="glass p-6 rounded-2xl border-gray-800 flex flex-col justify-between shadow-lg relative group overflow-hidden">
-                        <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-blue-500/5 to-transparent pointer-events-none transition-all group-hover:from-blue-500/10"></div>
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
                         <div>
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="text-lg font-black text-white group-hover:text-blue-400 transition-colors">${targetForm.name}</h4>
-                                <span class="text-[10px] font-mono font-bold bg-gray-900 border border-gray-800 text-gray-400 px-2 py-0.5 rounded-md">${totalQuestionsCount} Queries</span>
-                            </div>
-                            <p class="text-xs text-gray-400 leading-relaxed">${targetForm.desc}</p>
+                            <h3 class="text-sm font-bold text-white">${app.name}</h3>
+                            <p class="text-[11px] text-gray-400 mt-1">${app.questions.length} Evaluation Metrics Configured</p>
                         </div>
-                        ${actionDOM}
+                        <span class="text-[9px] px-2 py-0.5 rounded font-black bg-opacity-10 ${isOpen ? 'bg-green-500 text-green-400' : 'bg-red-500 text-red-400'}">${app.status}</span>
                     </div>
                 `;
+                selectionBox.appendChild(card);
             });
         }
 
-        // LAUNCH DYNAMIC APPLICATION FORM WORKSPACE ENVIRONMENT
-        function bootstrappedFormRuntime(formId) {
-            const formObj = state.forms[formId];
-            if (!formObj) return alert("System reference parameters missing code execution criteria.");
+        function openFillFormContainer(appId) {
+            const app = dynamicRegistryData.find(a => a.id === appId);
+            if(!app || app.status !== "OPEN") return;
 
-            document.getElementById("portalDashboard").classList.add("hidden");
-            const container = document.getElementById("applicationFormContainer");
-            container.classList.remove("hidden");
+            trackingSelectedFormIdForUser = appId;
+            document.getElementById('blankFormPlaceholder').classList.add('hidden');
+            
+            const fillCard = document.getElementById('activeFormFillCard');
+            fillCard.classList.remove('hidden');
+            
+            document.getElementById('fillFormTitleHeader').innerText = `${app.name} Data Entry Field`;
 
-            document.getElementById("activeFormTitle").innerText = formObj.name;
-            document.getElementById("activeFormSubtitle").innerText = `RFI Division Recruitment Node - Active Session: ${state.currentUser}`;
+            const fieldArea = document.getElementById('interactiveFieldsLoadingArea');
+            fieldArea.innerHTML = '';
 
-            const dynamicForm = document.getElementById("dynamicApplicationInjectForm");
-            dynamicForm.innerHTML = `<input type="hidden" id="submittingFormId" value="${formId}">`;
-
-            let formHTML = "";
-
-            // PARSE MULTIPLE CHOICE SECTION COMPONENT MODULES
-            if (formObj.sections.mcq && formObj.sections.mcq.length > 0) {
-                formHTML += `
-                    <div class="p-6 bg-slate-900/40 rounded-2xl border border-gray-800 space-y-6">
-                        <h4 class="text-sm font-black text-blue-400 tracking-wider uppercase flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                            Section Alpha: Objective Multiple-Choice Matrix
-                        </h4>
-                        <div class="grid grid-cols-1 gap-6">
+            app.questions.forEach((question, index) => {
+                let div = document.createElement('div');
+                div.className = "space-y-1.5";
+                div.innerHTML = `
+                    <label class="block text-xs font-bold text-gray-400 tracking-wide">${index + 1}. ${question}</label>
+                    <input type="text" required class="form-input-field w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-blue-500 transition" placeholder="Provide documentation structural values...">
                 `;
+                fieldArea.appendChild(div);
+            });
+        }
 
-                formObj.sections.mcq.forEach((q, index) => {
-                    formHTML += `
-                        <div class="space-y-2">
-                            <p class="text-sm font-semibold text-gray-200"><span class="text-blue-500 font-bold">Q${index+1}.</span> ${q.q}</p>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    `;
-                    Object.keys(q.options).forEach(optKey => {
-                        formHTML += `
-                            <label class="flex items-center gap-3 p-3 bg-gray-950/80 border border-gray-800 hover:border-gray-700 rounded-xl cursor-pointer transition-all text-xs font-medium text-gray-300">
-                                <input type="radio" name="mcq_${q.id}" value="${optKey}" required class="text-blue-500 focus:ring-0 bg-transparent">
-                                <span><strong class="text-gray-400 mr-1">${optKey})</strong> ${q.options[optKey]}</span>
-                            </label>
-                        `;
-                    });
-                    formHTML += `</div></div>`;
-                });
+        function clearActiveFillForm() {
+            trackingSelectedFormIdForUser = null;
+            document.getElementById('activeFormFillCard').classList.add('hidden');
+            document.getElementById('blankFormPlaceholder').classList.remove('hidden');
+        }
 
-                formHTML += `</div></div>`;
-            }
+        function dispatchFilledApplicationData(event) {
+            event.preventDefault();
+            const app = dynamicRegistryData.find(a => a.id === trackingSelectedFormIdForUser);
+            if(!app) return;
 
-            // PARSE WRITTEN COMPONENT RESPONSES SECTIONS
-            if (formObj.sections.written && formObj.sections.written.length > 0) {
-                formHTML += `
-                    <div class="p-6 bg-slate-900/40 rounded-2xl border border-gray-800 space-y-6">
-                        <h4 class="text-sm font-black text-purple-400 tracking-wider uppercase flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
-                            Section Bravo: Subjective Detailed Assessment
-                        </h4>
-                        <div class="space-y-6">
-                `;
+            const inputs = event.target.querySelectorAll('.form-input-field');
+            let collectionSummaryArray = [];
+            
+            inputs.forEach((input, index) => {
+                collectionSummaryArray.push(`[Q${index+1}: ${input.value}]`);
+            });
 
-                formObj.sections.written.forEach((q, index) => {
-                    formHTML += `
-                        <div class="space-y-2">
-                            <label class="block text-sm font-semibold text-gray-200"><span class="text-purple-500 font-bold">W-${index+1}.</span> ${q.q}</label>
-                            <textarea name="written_${q.id}" required class="w-full h-24 bg-gray-950 border border-gray-800 focus:border-purple-500 rounded-xl px-4 py-3 text-white text-xs focus:outline-none custom-scrollbar resize-none transition-all" placeholder="Input comprehensive operations breakdown sequence..."></textarea>
+            // Store inside shared matrix logs tracker
+            registeredLogsArray.push({
+                formName: app.name,
+                timestamp: new Date().toLocaleTimeString(),
+                answers: collectionSummaryArray.join(' | ')
+            });
+
+            alert(`Deployment transmission packet for [${app.name}] routed straight to core logs framework database.`);
+            event.target.reset();
+            clearActiveFillForm();
+            updateUserDOM();
+        }
+
+        // ==========================================================
+        // MAIN ADMINISTRATIVE BACKEND ROUTINES (SAME AS ORIGINAL)   
+        // ==========================================================
+        function updateAdminDOM() {
+            const container = document.getElementById('blueprintContainer');
+            const selector = document.getElementById('statusTargetRegistry');
+            
+            if(!container || !selector) return;
+            
+            container.innerHTML = '';
+            selector.innerHTML = '';
+
+            dynamicRegistryData.forEach((app) => {
+                let option = document.createElement('option');
+                option.value = app.id;
+                option.innerText = `${app.name} [Status: ${app.status}]`;
+                selector.appendChild(option);
+
+                let card = document.createElement('div');
+                card.className = "bg-[#0b0f19] border border-gray-800 rounded-xl p-4 relative overflow-hidden shadow-inner";
+                
+                let badgeColor = app.status === "OPEN" ? "bg-green-500 text-green-400" : "bg-red-500 text-red-400";
+                if(app.status === "CLOSED") card.classList.add('opacity-75');
+
+                let questionsHTML = '';
+                app.questions.forEach((q, idx) => {
+                    questionsHTML += `
+                        <div class="flex justify-between items-center bg-[#131a2c]/50 border border-gray-800/80 px-4 py-2 rounded-lg text-xs font-semibold text-gray-300">
+                            <span class="truncate"><span class="text-blue-400 font-bold">[METRIC]</span> ${q}</span>
+                            <i onclick="deleteQuestion('${app.id}', ${idx})" class="fas fa-trash-alt text-red-500/60 hover:text-red-400 cursor-pointer transition p-1"></i>
                         </div>
                     `;
                 });
 
-                formHTML += `</div></div>`;
-            }
-
-            // INJECT SUBMIT ACTION TRIGGERS
-            formHTML += `
-                <button type="submit" class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-xl font-extrabold tracking-wider text-sm uppercase transition-all shadow-xl cursor-pointer">
-                    Commit File Records & Submit Applications
-                </button>
-            `;
-
-            dynamicForm.innerHTML += formHTML;
-        }
-
-        function returnToDashboard() {
-            document.getElementById("applicationFormContainer").classList.add("hidden");
-            evaluateRenderRouting();
-        }
-
-        // EVALUATE COMPILATION APPLICATION SUBMISSIONS
-        function handleFormSubmission(e) {
-            e.preventDefault();
-            const formId = document.getElementById("submittingFormId").value;
-            const formObj = state.forms[formId];
-
-            let mcqScore = 0;
-            const answersPack = { mcq: {}, written: {} };
-
-            // GRADING RUNTIME PROCESSOR FOR OBJECTIVE DATA SECTIONS
-            if (formObj.sections.mcq) {
-                formObj.sections.mcq.forEach(q => {
-                    const selector = document.querySelector(`input[name="mcq_${q.id}"]:checked`);
-                    const val = selector ? selector.value : "";
-                    answersPack.mcq[q.id] = val;
-                    if (val === q.correct) {
-                        mcqScore++;
-                    }
-                });
-            }
-
-            // INTEGRATE DATA STRINGS FOR WRITTEN SECTIONS
-            if (formObj.sections.written) {
-                formObj.sections.written.forEach(q => {
-                    const element = document.querySelector(`textarea[name="written_${q.id}"]`);
-                    answersPack.written[q.id] = element ? element.value.trim() : "";
-                });
-            }
-
-            // BUILD COMPACT SUBMISSION RECORD ENVELOPE
-            const submissionRecord = {
-                id: "SUB_" + Date.now(),
-                formId: formId,
-                formName: formObj.name,
-                applicant: state.currentUser,
-                timestamp: new Date().toLocaleString(),
-                answers: answersPack,
-                score: mcqScore, // Store default grading scores
-                isGraded: false // Initial subjective pending operational evaluation mark
-            };
-
-            state.submissions.push(submissionRecord);
-            saveStateToStorage();
-
-            alert(`Application for ${formObj.name} received successfully.`);
-            returnToDashboard();
-        }
-
-        // ADMINISTRATOR COMPONENT: WORKSPACE ROUTINES
-        function openAdminPanel() {
-            if (state.currentUser !== 'Admin') {
-                const check = prompt("Input System Administrative Access Overwrite Code Parameter:");
-                if (check === ADMIN_ACCESS_PASSCODE) {
-                    state.currentUser = "Admin";
-                    saveStateToStorage();
-                    evaluateRenderRouting();
-                } else {
-                    return alert("Invalid credentials protocol clearance.");
-                }
-            }
-            document.getElementById("adminPanelModal").classList.remove("hidden");
-            renderAdminPanelRuntime();
-        }
-
-        function closeAdminPanel() {
-            document.getElementById("adminPanelModal").classList.add("hidden");
-            evaluateRenderRouting();
-        }
-
-        function setSystemGlobalState(isOpen) {
-            state.systemOpen = isOpen;
-            saveStateToStorage();
-            renderAdminPanelRuntime();
-        }
-
-        function renderAdminPanelRuntime() {
-            // Render open/close button configurations styling metrics
-            const btnOpen = document.getElementById("sysBtnOpen");
-            const btnClose = document.getElementById("sysBtnClose");
-
-            if (state.systemOpen) {
-                btnOpen.className = "px-4 py-2 font-black text-xs rounded-lg transition-all bg-emerald-600 text-white shadow";
-                btnClose.className = "px-4 py-2 font-bold text-xs rounded-lg transition-all text-gray-500 hover:text-white bg-transparent";
-            } else {
-                btnOpen.className = "px-4 py-2 font-bold text-xs rounded-lg transition-all text-gray-500 hover:text-white bg-transparent";
-                btnClose.className = "px-4 py-2 font-black text-xs rounded-lg transition-all bg-red-600 text-white shadow";
-            }
-
-            // Sync structural selection inputs variables
-            const formDropdown = document.getElementById("questionTargetForm");
-            formDropdown.innerHTML = "";
-            Object.keys(state.forms).forEach(key => {
-                formDropdown.innerHTML += `<option value="${key}">${state.forms[key].name}</option>`;
-            });
-
-            // Blueprint Inspectors list runtime
-            const inspector = document.getElementById("adminFormInspectorStack");
-            inspector.innerHTML = "";
-
-            Object.keys(state.forms).forEach(key => {
-                const f = state.forms[key];
-                let questionsMapHTML = "";
-
-                if (f.sections.mcq) {
-                    f.sections.mcq.forEach(q => {
-                        questionsMapHTML += `
-                            <div class="flex items-center justify-between p-2 bg-gray-950 rounded-lg text-xs border border-gray-800">
-                                <span class="text-gray-300 truncate max-w-xs"><strong class="text-blue-400 mr-1">[MCQ]</strong> ${q.q}</span>
-                                <button onclick="adminRemoveQuestion('${key}','mcq','${q.id}')" class="text-red-400 hover:text-red-500 font-bold ml-2"><i class="fa-solid fa-trash-can"></i></button>
+                card.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-3">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-sm font-black text-white tracking-wide">${app.name}</h3>
+                                <span class="text-[10px] font-bold text-gray-500 uppercase">(${app.code})</span>
+                                <span class="text-[9px] px-2 py-0.5 rounded-md font-black tracking-widest uppercase bg-opacity-10 ${badgeColor}">${app.status}</span>
                             </div>
-                        `;
-                    });
-                }
-                if (f.sections.written) {
-                    f.sections.written.forEach(q => {
-                        questionsMapHTML += `
-                            <div class="flex items-center justify-between p-2 bg-gray-950 rounded-lg text-xs border border-gray-800">
-                                <span class="text-gray-300 truncate max-w-xs"><strong class="text-purple-400 mr-1">[WRITTEN]</strong> ${q.q}</span>
-                                <button onclick="adminRemoveQuestion('${key}','written','${q.id}')" class="text-red-400 hover:text-red-500 font-bold ml-2"><i class="fa-solid fa-trash-can"></i></button>
-                            </div>
-                        `;
-                    });
-                }
-
-                inspector.innerHTML += `
-                    <div class="bg-gray-900/40 border border-gray-800 p-4 rounded-xl space-y-3">
-                        <div class="flex items-center justify-between border-b border-gray-800 pb-1.5">
-                            <h4 class="text-xs font-bold text-white">${f.name} <span class="text-[10px] text-gray-500">(${key})</span></h4>
-                            <button onclick="adminDeleteFormBlueprint('${key}')" class="text-red-400 text-xs font-bold hover:underline"><i class="fa-solid fa-folder-minus mr-1"></i>Delete Form</button>
                         </div>
-                        <div class="space-y-1">${questionsMapHTML || '<p class="text-[11px] text-gray-600 italic">No operational prompts registered in template container.</p>'}</div>
+                        <button onclick="deleteEntireForm('${app.id}')" class="text-xs text-red-400 hover:text-red-300 font-bold flex items-center gap-1.5 transition cursor-pointer">
+                            <i class="fas fa-folder-minus"></i> Delete Form
+                        </button>
+                    </div>
+                    <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        ${questionsHTML || '<div class="text-xs text-gray-600 italic py-2">No functional question modules deployed in this engine.</div>'}
                     </div>
                 `;
+                container.appendChild(card);
             });
 
-            // Render Application assessment evaluation tracking matrix records table
-            const tableContainer = document.getElementById("adminSubmissionsTableContainer");
-            if (state.submissions.length === 0) {
-                tableContainer.innerHTML = `<p class="text-xs text-gray-500 italic text-center py-6">No application profile submissions caught in processing pipelines.</p>`;
-                return;
-            }
-
-            let tableHTML = `
-                <table class="w-full text-left text-xs border-collapse min-w-[600px]">
-                    <thead>
-                        <tr class="border-b border-gray-800 text-purple-400 uppercase tracking-wider font-bold">
-                            <th class="p-3">Applicant</th>
-                            <th class="p-3">Department Target</th>
-                            <th class="p-3">Submission Timestamp</th>
-                            <th class="p-3">Automated Score</th>
-                            <th class="p-3">Subjective Status</th>
-                            <th class="p-3 text-right">Actions Panel</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-800/60 text-gray-300">
-            `;
-
-            state.submissions.forEach((sub, index) => {
-                const scoreDisplay = `${sub.score} Pts`;
-                const evaluatedBadge = sub.isGraded ? `<span class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded">Evaluated</span>` : `<span class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded">Pending Marks</span>`;
-
-                tableHTML += `
-                    <tr class="hover:bg-gray-900/30">
-                        <td class="p-3 font-semibold text-white">${sub.applicant}</td>
-                        <td class="p-3">${sub.formName}</td>
-                        <td class="p-3 text-gray-400">${sub.timestamp}</td>
-                        <td class="p-3 font-mono text-blue-400 font-bold">${scoreDisplay}</td>
-                        <td class="p-3">${evaluatedBadge}</td>
-                        <td class="p-3 text-right">
-                            <button onclick="launchSubmissionEvaluator(${index})" class="px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded font-bold text-[11px] transition-colors cursor-pointer">Grade Application</button>
-                            <button onclick="adminDeleteSubmission(${index})" class="px-2 py-1 bg-red-950/40 hover:bg-red-900/60 text-red-400 border border-red-900/40 rounded text-[11px] transition-colors cursor-pointer ml-1"><i class="fa-solid fa-trash-can"></i></button>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            tableHTML += `</tbody></table>`;
-            tableContainer.innerHTML = tableHTML;
-        }
-
-        // DYNAMIC BLUEPRINT INSTANTIATION CONSTRUCTOR
-        function adminCreateNewForm() {
-            const rawId = document.getElementById("newFormName").value.trim();
-            const desc = document.getElementById("newFormDesc").value.trim();
-
-            if (!rawId || !desc) return alert("Populate all form specification fields.");
-            const formId = rawId.toLowerCase().replace(/[^a-z0-9]/g, "_");
-
-            if (state.forms[formId]) return alert("A form identifier layout with this tag parameter exists.");
-
-            state.forms[formId] = {
-                id: formId,
-                name: rawId,
-                desc: desc,
-                sections: { mcq: [], written: [] }
-            };
-
-            saveStateToStorage();
-            renderAdminPanelRuntime();
-            alert(`Instantiated custom template blueprint registry for: ${rawId}`);
-            document.getElementById("newFormName").value = "";
-            document.getElementById("newFormDesc").value = "";
-        }
-
-        // INJECT QUESTION MODULE ROUTER ENGINE
-        function adminInjectQuestion() {
-            const formId = document.getElementById("questionTargetForm").value;
-            const section = document.getElementById("questionTargetSection").value;
-            const text = document.getElementById("questionString").value.trim();
-
-            if (!text || !formId) return alert("Provide a textual problem description criteria.");
-
-            const targetForm = state.forms[formId];
-            if (!targetForm.sections[section]) targetForm.sections[section] = [];
-
-            const qId = "q_" + Date.now();
-
-            if (section === 'mcq') {
-                const optA = document.getElementById("mcqOptA").value.trim() || "Option A";
-                const optB = document.getElementById("mcqOptB").value.trim() || "Option B";
-                const optC = document.getElementById("mcqOptC").value.trim() || "Option C";
-                const optD = document.getElementById("mcqOptD").value.trim() || "Option D";
-                const correct = document.querySelector('input[name="mcqCorrectKey"]:checked').value;
-
-                targetForm.sections.mcq.push({
-                    id: qId,
-                    q: text,
-                    options: { A: optA, B: optB, C: optC, D: optD },
-                    correct: correct
+            // Update Logs Layout Screen Box View Live
+            const logBox = document.getElementById('adminLogsContainer');
+            if(registeredLogsArray.length > 0) {
+                logBox.innerHTML = '';
+                logBox.className = "bg-[#0b0f19] border border-gray-800 rounded-xl p-3 text-left space-y-2 max-h-60 overflow-y-auto";
+                registeredLogsArray.forEach((log) => {
+                    let record = document.createElement('div');
+                    record.className = "bg-[#131a2c] border border-gray-800 p-2.5 rounded-lg text-[11px] font-mono leading-relaxed";
+                    record.innerHTML = `<span class="text-purple-400 font-bold">[${log.timestamp}]</span> <span class="text-blue-400 font-bold">${log.formName}:</span> <span class="text-gray-300">${log.answers}</span>`;
+                    logBox.appendChild(record);
                 });
             } else {
-                targetForm.sections.written.push({ id: qId, q: text });
+                logBox.className = "bg-[#0b0f19] border border-gray-800 rounded-xl p-8 text-center text-gray-600 text-sm font-semibold";
+                logBox.innerText = "No active runtime form log streams detected.";
             }
-
-            saveStateToStorage();
-            renderAdminPanelRuntime();
-            alert("Appended operational parameter node question module successfully.");
-            document.getElementById("questionString").value = "";
         }
 
-        // DESTRUCT QUESTIONS NODES FROM REGISTRY FILES
-        function adminRemoveQuestion(formId, section, qId) {
-            if (!confirm("Confirm structural deletion sequence of question matrix parameters?")) return;
-            state.forms[formId].sections[section] = state.forms[formId].sections[section].filter(q => q.id !== qId);
-            saveStateToStorage();
-            renderAdminPanelRuntime();
-        }
-
-        // DELETE FORM BLUEPRINT ENTIRELY
-        function adminDeleteFormBlueprint(formId) {
-            if (!confirm(`Warning: Completely destroy the form template profile configuration [${formId}]? All structures will be lost.`)) return;
-            delete state.forms[formId];
-            saveStateToStorage();
-            renderAdminPanelRuntime();
-        }
-
-        // ERASE REGISTRY SUBMISSION PACKS
-        function adminDeleteSubmission(index) {
-            if (!confirm("Purge application log file profile from databanks records permanently?")) return;
-            state.submissions.splice(index, 1);
-            saveStateToStorage();
-            renderAdminPanelRuntime();
-        }
-
-        // MODERATOR SCORE ASSIGNMENT / MARKS GIVING COMPONENT EVALUATOR INTERACTIVE VIEWPORT
-        function launchSubmissionEvaluator(subIndex) {
-            const sub = state.submissions[subIndex];
-            const targetForm = state.forms[sub.formId];
-
-            let evaluationHUDHTML = `
-                <div class="fixed inset-0 z-50 bg-slate-950/95 overflow-y-auto custom-scrollbar p-4 md:p-8 flex items-center justify-center">
-                    <div class="glass max-w-3xl w-full rounded-3xl p-6 md:p-8 border-purple-500/40 space-y-6">
-                        <div class="flex justify-between items-start border-b border-gray-800 pb-4">
-                            <div>
-                                <span class="text-[10px] font-mono tracking-widest bg-purple-500/10 border border-purple-500/20 text-purple-400 font-bold px-2.5 py-1 rounded-md uppercase">Application Evaluation Matrix Pipeline</span>
-                                <h3 class="text-2xl font-black text-white mt-2">${sub.applicant} &mdash; ${sub.formName}</h3>
-                                <p class="text-xs text-gray-400 mt-0.5">Logs Filed: ${sub.timestamp}</p>
-                            </div>
-                            <button id="closeEvaluatorBtn" class="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-gray-400 rounded-xl border border-gray-800 font-bold text-xs cursor-pointer">Terminate Inspector</button>
-                        </div>
-            `;
-
-            // Display Objective Grade Baseline
-            evaluationHUDHTML += `
-                <div class="p-4 bg-blue-950/20 border border-blue-500/20 rounded-xl flex justify-between items-center text-xs">
-                    <span class="text-gray-300 font-medium"><i class="fa-solid fa-calculator text-blue-400 mr-1.5"></i> Automated Grading Score Base Metrics (Section Alpha)</span>
-                    <span class="font-mono font-bold text-blue-400 text-sm bg-blue-500/5 px-2.5 py-1 rounded border border-blue-500/10">${sub.score} Raw Points</span>
-                </div>
-            `;
-
-            // Review subjective answers items list stack and assign marks individual question mechanics
-            if (targetForm && targetForm.sections.written && targetForm.sections.written.length > 0) {
-                evaluationHUDHTML += `<div class="space-y-4"><h4 class="text-xs font-bold text-purple-400 uppercase tracking-wider">Review Written Logs & Allot Section Points</h4>`;
-                
-                targetForm.sections.written.forEach(q => {
-                    const userResponseText = sub.answers.written[q.id] || "[No data response payload returned]";
-                    evaluationHUDHTML += `
-                        <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-800 space-y-2">
-                            <p class="text-xs font-semibold text-gray-300"><span class="text-purple-400 font-bold">Query:</span> ${q.q}</p>
-                            <blockquote class="p-3 bg-gray-950 rounded-lg text-xs italic text-gray-400 border-l-2 border-l-gray-700 whitespace-pre-wrap">${userResponseText}</blockquote>
-                        </div>
-                    `;
-                });
-                
-                evaluationHUDHTML += `</div>`;
+        function toggleStatusState() {
+            const btn = document.getElementById('statusToggleBtn');
+            if (targetStatusMode === "OPEN") {
+                targetStatusMode = "CLOSED";
+                btn.innerText = "CLOSED / LOCKED";
+                btn.className = "bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition shadow-md cursor-pointer";
+            } else {
+                targetStatusMode = "OPEN";
+                btn.innerText = "OPEN / ACTIVE";
+                btn.className = "bg-green-600 hover:bg-green-500 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition shadow-md cursor-pointer";
             }
-
-            // Global Allotment input frame interface configuration
-            evaluationHUDHTML += `
-                <div class="pt-4 border-t border-gray-800/80 flex flex-col sm:flex-row items-end sm:items-center justify-between gap-4">
-                    <div class="w-full sm:max-w-xs">
-                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Final Overall Score Metric Allocation</label>
-                        <div class="flex items-center gap-2">
-                            <input type="number" id="finalAllottedScoreInput" value="${sub.score}" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white font-bold text-sm focus:outline-none focus:border-purple-500">
-                            <span class="text-xs text-gray-500 font-bold">Points</span>
-                        </div>
-                    </div>
-                    <button id="commitGradesBtn" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-extrabold tracking-wider text-xs uppercase shadow transition-all cursor-pointer">Commit Evaluation Marks</button>
-                </div>
-            </div></div>`;
-
-            // Inject temporary workspace component screen
-            const evalWrapperNode = document.createElement("div");
-            evalWrapperNode.id = "temporaryEvaluatorNodeContainer";
-            evalWrapperNode.innerHTML = evaluationHUDHTML;
-            document.body.appendChild(evalWrapperNode);
-
-            // Set up interaction operational listeners
-            document.getElementById("closeEvaluatorBtn").onclick = () => evalWrapperNode.remove();
-            document.getElementById("commitGradesBtn").onclick = () => {
-                const finalMark = parseInt(document.getElementById("finalAllottedScoreInput").value) || 0;
-                sub.score = finalMark;
-                sub.isGraded = true;
-                saveStateToStorage();
-                alert(`Marks locked. ${sub.applicant} application entry successfully logged as: ${finalMark} Points.`);
-                evalWrapperNode.remove();
-                renderAdminPanelRuntime();
-            };
         }
+
+        function applyStatusChange() {
+            const selectedId = document.getElementById('statusTargetRegistry').value;
+            const appObj = dynamicRegistryData.find(app => app.id === selectedId);
+            if(appObj) {
+                appObj.status = targetStatusMode;
+                updateAdminDOM();
+            }
+        }
+
+        function toggleGlobalStatusBulk(targetMode) {
+            dynamicRegistryData.forEach(app => app.status = targetMode);
+            updateAdminDOM();
+        }
+
+        function createNewBlueprint() {
+            const nameInput = document.getElementById('newFormName');
+            if(!nameInput.value.trim()) return;
+
+            let computedId = nameInput.value.toLowerCase().replace(/[^a-z0-9]/g, '-');
+            let computedCode = nameInput.value.toLowerCase().split(' ')[0] || "gen";
+
+            dynamicRegistryData.push({
+                id: computedId,
+                name: nameInput.value.trim(),
+                code: computedCode,
+                status: "OPEN",
+                questions: ["Sample Evaluation metric prompt text entry field configuration"]
+            });
+
+            nameInput.value = '';
+            updateAdminDOM();
+        }
+
+        function deleteQuestion(appId, qIndex) {
+            const app = dynamicRegistryData.find(a => a.id === appId);
+            if(app) {
+                app.questions.splice(qIndex, 1);
+                updateAdminDOM();
+            }
+        }
+
+        function deleteEntireForm(appId) {
+            dynamicRegistryData = dynamicRegistryData.filter(a => a.id !== appId);
+            updateAdminDOM();
+        }
+
+        // Initialize setup view layout states
+        window.onload = function() {
+            switchAuthView('login');
+        };
     </script>
 </body>
 </html>
