@@ -7,12 +7,43 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-[#0b0f19] text-gray-200 font-sans min-h-screen p-6">
+<body class="bg-[#0b0f19] text-gray-200 font-sans min-h-screen relative p-6">
 
-    <!-- HEADER PANEL -->
+    <div id="globalLockOverlay" class="hidden fixed inset-0 bg-[#070a12]/95 z-50 flex flex-col justify-center items-center backdrop-blur-md p-6">
+        <div class="bg-[#131a2c] border border-red-500/30 p-8 rounded-2xl max-w-md w-full text-center shadow-2xl">
+            <div class="bg-red-600/10 border border-red-500/30 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+                <i class="fas fa-shield-alt text-2xl text-red-500"></i>
+            </div>
+            <h2 class="text-xl font-black uppercase tracking-wider text-white mb-2">System Core Locked</h2>
+            <p class="text-xs text-gray-400 font-medium leading-relaxed mb-6">The secure gateway configuration engine has been manually placed into a locked status state by administrative oversight.</p>
+            <button onclick="globalSystemToggle(true)" class="bg-green-600 hover:bg-green-500 text-white text-xs font-black uppercase tracking-widest px-6 py-3 rounded-xl transition shadow-lg shadow-green-900/40 cursor-pointer">
+                <i class="fas fa-unlock-alt mr-2"></i> Restore System Access
+            </button>
+        </div>
+    </div>
+
+    <div id="loginGateway" class="fixed inset-0 bg-[#0b0f19] z-40 flex items-center justify-center p-4">
+        <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 w-32 h-32 bg-purple-600/10 rounded-full blur-2xl"></div>
+            <div class="flex flex-col items-center text-center mb-8">
+                <div class="p-4 bg-purple-600 rounded-2xl shadow-lg shadow-purple-900/40 mb-4">
+                    <i class="fas fa-terminal text-2xl text-white"></i>
+                </div>
+                <h1 class="text-xl font-black tracking-wide text-white uppercase">RFI Secure Gateway</h1>
+                <p class="text-xs font-bold text-purple-400 tracking-widest uppercase mt-1">Authentication Module v4.0</p>
+            </div>
+            <div class="space-y-4">
+                <button onclick="enterPortalSession()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3.5 px-4 rounded-xl text-xs uppercase tracking-widest transition shadow-lg shadow-purple-900/40 cursor-pointer flex items-center justify-center gap-2">
+                    Access Administrative Headquarters <i class="fas fa-arrow-right"></i>
+                </button>
+                <p class="text-[10px] text-gray-500 text-center font-medium">Authorized operational personnel access matrix only.</p>
+            </div>
+        </div>
+    </div>
+
     <div class="max-w-7xl mx-auto bg-[#131a2c] border border-gray-800 rounded-2xl p-6 mb-6 flex flex-col md:flex-row justify-between items-center shadow-2xl gap-4">
         <div class="flex items-center gap-4">
-            <div class="bg-purple-6xl p-4 bg-purple-600 rounded-xl shadow-lg shadow-purple-900/50">
+            <div class="p-4 bg-purple-600 rounded-xl shadow-lg shadow-purple-900/50">
                 <i class="fas fa-cogs text-2xl text-white"></i>
             </div>
             <div>
@@ -21,25 +52,22 @@
             </div>
         </div>
         <div class="flex items-center gap-3">
-            <button class="bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 border border-gray-700">
+            <button onclick="globalSystemToggle(true)" class="bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 border border-gray-700 cursor-pointer">
                 <i class="fas fa-folder-open text-gray-400"></i> OPEN
             </button>
-            <button class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-lg shadow-red-900/40">
+            <button onclick="globalSystemToggle(false)" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-lg shadow-red-900/40 cursor-pointer">
                 <i class="fas fa-lock"></i> CLOSE
             </button>
-            <button class="bg-[#1e293b] hover:bg-gray-800 text-gray-400 hover:text-white font-bold px-4 py-2 rounded-xl text-sm transition border border-gray-700">
+            <button onclick="exitPortalSession()" class="bg-[#1e293b] hover:bg-gray-800 text-gray-400 hover:text-white font-bold px-4 py-2 rounded-xl text-sm transition border border-gray-700 cursor-pointer">
                 Exit Session
             </button>
         </div>
     </div>
 
-    <!-- MAIN INTERACTION MATRIX -->
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <!-- LEFT COLUMN: CONTROLS & UTILITIES -->
         <div class="lg:col-span-4 flex flex-col gap-6">
             
-            <!-- NEW: APPLICATION STATUS MANAGEMENT ENGINE -->
             <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-5 shadow-xl">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-md font-black uppercase tracking-wider text-white flex items-center gap-2">
@@ -51,13 +79,12 @@
                     <div>
                         <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Target Application Registry</label>
                         <select id="statusTargetRegistry" class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-3 text-sm text-gray-300 focus:outline-none focus:border-purple-500 transition">
-                            <!-- Dynamic Options Loaded Via JS -->
-                        </select>
+                            </select>
                     </div>
 
                     <div class="flex items-center justify-between bg-[#0b0f19] p-3 border border-gray-800 rounded-xl">
                         <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Requested Status Mode</span>
-                        <button id="statusToggleBtn" onclick="toggleStatusState()" class="bg-green-600 hover:bg-green-500 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition shadow-md shadow-green-900/30">
+                        <button id="statusToggleBtn" onclick="toggleStatusState()" class="bg-green-600 hover:bg-green-500 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition shadow-md shadow-green-900/30 cursor-pointer">
                             OPEN / ACTIVE
                         </button>
                     </div>
@@ -68,7 +95,6 @@
                 </div>
             </div>
 
-            <!-- FORM BLUEPRINT MANAGER -->
             <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-5 shadow-xl">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-md font-black uppercase tracking-wider text-white">Form Blueprint Manager</h2>
@@ -91,23 +117,18 @@
             </div>
         </div>
 
-        <!-- RIGHT COLUMN: DYNAMIC DATA VISUALIZATION -->
         <div class="lg:col-span-8 flex flex-col gap-6">
             
-            <!-- BLUEPRINT INVENTORY DISPLAY -->
             <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-6 shadow-xl flex-1">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-md font-black uppercase tracking-wider text-white">Form Inventory Blueprint Breakdown</h2>
                     <span class="text-xs text-gray-500 font-semibold">Add or Remove Live Prompts</span>
                 </div>
                 
-                <!-- Dynamic Target Box for Applications -->
                 <div id="blueprintContainer" class="space-y-4">
-                    <!-- Cards are dynamically injected via Javascript below -->
-                </div>
+                    </div>
             </div>
 
-            <!-- SYSTEM LOGS GRID -->
             <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-6 shadow-xl">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-md font-black uppercase tracking-wider text-white">User Application Evaluation Matrix Logs</h2>
@@ -121,15 +142,14 @@
         </div>
     </div>
 
-    <!-- CORE LOGIC ENGINE SYSTEM -->
     <script>
-        // Database Runtime Mock Array
+        // ORIGINAL APPLICATION INVENTORY DATABASE OBJECTS
         let dynamicRegistryData = [
             {
                 id: "tester-app",
                 name: "Tester Application",
                 code: "tester",
-                status: "OPEN", // Default Operational Status
+                status: "OPEN", // Default tracking status setting
                 questions: [
                     "[MCQ] What should you do first when you find a bug?",
                     "[MCQ] What is the main purpose of game testing?",
@@ -141,7 +161,7 @@
                 id: "mod-app",
                 name: "Moderator Application",
                 code: "mod",
-                status: "CLOSED", // Default Operational Status
+                status: "CLOSED", // Default tracking status setting
                 questions: [
                     "[TEXT] Explain your past moderation server experiences.",
                     "[MCQ] How do you handle escalating conflict between users?"
@@ -149,30 +169,48 @@
             }
         ];
 
-        let targetStatusMode = "OPEN"; // Temporary storage status toggle state
+        let targetStatusMode = "OPEN";
 
-        // Render Database Objects into UI Layer
+        // ADDED ENTRY/EXIT SESSION TRIGGERS
+        function enterPortalSession() {
+            document.getElementById('loginGateway').classList.add('hidden');
+        }
+
+        function exitPortalSession() {
+            document.getElementById('loginGateway').classList.remove('hidden');
+        }
+
+        function globalSystemToggle(isOpen) {
+            const overlay = document.getElementById('globalLockOverlay');
+            if(isOpen) {
+                overlay.classList.add('hidden');
+            } else {
+                overlay.classList.remove('hidden');
+            }
+        }
+
+        // ORIGINAL RENDER MODULE: GENERATING CARDS FROM ARRAY LIVE
         function updateRegistryDOM() {
             const container = document.getElementById('blueprintContainer');
             const selector = document.getElementById('statusTargetRegistry');
+            
+            if(!container || !selector) return;
             
             container.innerHTML = '';
             selector.innerHTML = '';
 
             dynamicRegistryData.forEach((app) => {
-                // Populate the new Status Control Dropdown selector options
+                // Keep Registry select options perfectly updated
                 let option = document.createElement('option');
                 option.value = app.id;
                 option.innerText = `${app.name} [Currently: ${app.status}]`;
                 selector.appendChild(option);
 
-                // Build Individual Application Cards dynamically
                 let card = document.createElement('div');
                 card.className = "bg-[#0b0f19] border border-gray-800 rounded-xl p-4 relative overflow-hidden shadow-inner";
                 
-                // Colored Indicator Bars for status identification
+                // Color configuration parsing based on application visibility status mode
                 let statusBadgeColor = app.status === "OPEN" ? "bg-green-500 text-green-400" : "bg-red-500 text-red-400";
-                let statusBorderColor = app.status === "OPEN" ? "border-green-500/20" : "border-red-500/20";
                 
                 if(app.status === "CLOSED") {
                     card.classList.add('opacity-75');
@@ -197,7 +235,7 @@
                                 <span class="text-[9px] px-2 py-0.5 rounded-md font-black tracking-widest uppercase bg-opacity-10 ${statusBadgeColor}">${app.status}</span>
                             </div>
                         </div>
-                        <button onclick="deleteEntireForm('${app.id}')" class="text-xs text-red-400 hover:text-red-300 font-bold flex items-center gap-1.5 transition">
+                        <button onclick="deleteEntireForm('${app.id}')" class="text-xs text-red-400 hover:text-red-300 font-bold flex items-center gap-1.5 transition cursor-pointer">
                             <i class="fas fa-folder-minus"></i> Delete Form
                         </button>
                     </div>
@@ -209,21 +247,21 @@
             });
         }
 
-        // Toggle Status Panel Button Selection State
+        // CONTROL HANDLER FOR SELECTING STATUS TYPES
         function toggleStatusState() {
             const btn = document.getElementById('statusToggleBtn');
             if (targetStatusMode === "OPEN") {
                 targetStatusMode = "CLOSED";
                 btn.innerText = "CLOSED / LOCKED";
-                btn.className = "bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition shadow-md shadow-red-900/30";
+                btn.className = "bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition shadow-md shadow-red-900/30 cursor-pointer";
             } else {
                 targetStatusMode = "OPEN";
                 btn.innerText = "OPEN / ACTIVE";
-                btn.className = "bg-green-600 hover:bg-green-500 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition shadow-md shadow-green-900/30";
+                btn.className = "bg-green-600 hover:bg-green-500 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition shadow-md shadow-green-900/30 cursor-pointer";
             }
         }
 
-        // Apply Status Logic to array database item
+        // HANDLER FOR INJECTING CHANGES LIVE BACK TO DATA STATE
         function applyStatusChange() {
             const selectedId = document.getElementById('statusTargetRegistry').value;
             const appObj = dynamicRegistryData.find(app => app.id === selectedId);
@@ -231,19 +269,13 @@
             if(appObj) {
                 appObj.status = targetStatusMode;
                 updateRegistryDOM();
-                alert(`System Alert: ${appObj.name} deployment parameters successfully changed to [${targetStatusMode}].`);
             }
         }
 
-        // Create New Form Array Data Objects
+        // ORIGINAL COMPONENT INSTANTIATION CONTROL LOGIC
         function createNewBlueprint() {
             const nameInput = document.getElementById('newFormName');
-            const descInput = document.getElementById('newFormDesc');
-
-            if(!nameInput.value.trim()) {
-                alert("Execution Fault: Setup requires a layout form signature name.");
-                return;
-            }
+            if(!nameInput.value.trim()) return;
 
             let computedId = nameInput.value.toLowerCase().replace(/[^a-z0-9]/g, '-');
             let computedCode = nameInput.value.toLowerCase().split(' ')[0] || "gen";
@@ -257,11 +289,9 @@
             });
 
             nameInput.value = '';
-            descInput.value = '';
             updateRegistryDOM();
         }
 
-        // Delete Object Key Indices
         function deleteQuestion(appId, qIndex) {
             const app = dynamicRegistryData.find(a => a.id === appId);
             if(app) {
@@ -275,7 +305,7 @@
             updateRegistryDOM();
         }
 
-        // Primary Structural Core Boot Engine
+        // WINDOW INSTANTIATION LOAD TRIGGER
         window.onload = function() {
             updateRegistryDOM();
         };
