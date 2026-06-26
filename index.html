@@ -1294,13 +1294,95 @@
     </div>
 
     <script>
-        // ORIGINAL APPLICATION INVENTORY DATABASE OBJECTS
+        <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFI Administrative Headquarters</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-[#0b0f19] text-gray-200 font-sans min-h-screen p-6">
+
+    <div class="max-w-7xl mx-auto bg-[#131a2c] border border-gray-800 rounded-2xl p-6 mb-6 flex flex-col md:flex-row justify-between items-center shadow-2xl gap-4">
+        <div class="flex items-center gap-4">
+            <div class="p-4 bg-purple-600 rounded-xl shadow-lg">
+                <i class="fas fa-cogs text-2xl text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black tracking-wide text-white uppercase">RFI Administrative Headquarters</h1>
+                <p class="text-xs font-bold text-purple-400 tracking-widest uppercase mt-0.5">Secure Configuration Engine Access Portal</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <button class="bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 border border-gray-700">
+                <i class="fas fa-folder-open text-gray-400"></i> OPEN
+            </button>
+            <button class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-lg">
+                <i class="fas fa-lock"></i> CLOSE
+            </button>
+            <button class="bg-[#1e293b] hover:bg-gray-800 text-gray-400 hover:text-white font-bold px-4 py-2 rounded-xl text-sm transition border border-gray-700">
+                Exit Session
+            </button>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <div class="lg:col-span-4 flex flex-col gap-6">
+            <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-5 shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-md font-black uppercase tracking-wider text-white">Form Blueprint Manager</h2>
+                    <i class="fas fa-folder-plus text-purple-400 text-sm"></i>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Deploy New Form Type</label>
+                        <input type="text" placeholder="e.g., HR Department" class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-3 text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500 transition text-gray-300">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Description Brief</label>
+                        <textarea rows="3" placeholder="Describe the deployment criteria..." class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl px-4 py-3 text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500 transition text-gray-300 resize-none"></textarea>
+                    </div>
+                    <button class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-widest transition shadow-lg">
+                        Instantiate Blueprint
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-8 flex flex-col gap-6">
+            <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-6 shadow-xl flex-1">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-md font-black uppercase tracking-wider text-white">Form Inventory Blueprint Breakdown</h2>
+                    <span class="text-xs text-gray-500 font-semibold">Add or Remove Live Prompts</span>
+                </div>
+                
+                <div id="blueprintContainer" class="space-y-4">
+                    </div>
+            </div>
+
+            <div class="bg-[#131a2c] border border-gray-800 rounded-2xl p-6 shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-md font-black uppercase tracking-wider text-white">User Application Evaluation Matrix Logs</h2>
+                    <i class="fas fa-signature text-purple-400"></i>
+                </div>
+                <div class="bg-[#0b0f19] border border-gray-800 rounded-xl p-8 text-center text-gray-600 text-sm font-semibold">
+                    No active runtime form log streams detected.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Array holding BOTH applications with independent statuses
         let dynamicRegistryData = [
             {
                 id: "tester-app",
                 name: "Tester Application",
                 code: "tester",
-                status: "OPEN", // Default tracking status setting
+                status: "OPEN", 
                 questions: [
                     "[MCQ] What should you do first when you find a bug?",
                     "[MCQ] What is the main purpose of game testing?",
@@ -1312,7 +1394,7 @@
                 id: "mod-app",
                 name: "Moderator Application",
                 code: "mod",
-                status: "CLOSED", // Default tracking status setting
+                status: "CLOSED", 
                 questions: [
                     "[TEXT] Explain your past moderation server experiences.",
                     "[MCQ] How do you handle escalating conflict between users?"
@@ -1320,143 +1402,69 @@
             }
         ];
 
-        let targetStatusMode = "OPEN";
-
-        // ADDED ENTRY/EXIT SESSION TRIGGERS
-        function enterPortalSession() {
-            document.getElementById('loginGateway').classList.add('hidden');
-        }
-
-        function exitPortalSession() {
-            document.getElementById('loginGateway').classList.remove('hidden');
-        }
-
-        function globalSystemToggle(isOpen) {
-            const overlay = document.getElementById('globalLockOverlay');
-            if(isOpen) {
-                overlay.classList.add('hidden');
-            } else {
-                overlay.classList.remove('hidden');
+        // Function that targets the specific clicked card ID
+        function toggleAppStatus(appId) {
+            let app = dynamicRegistryData.find(a => a.id === appId);
+            if (app) {
+                // If OPEN -> Make CLOSED || If CLOSED -> Make OPEN
+                app.status = (app.status === "OPEN") ? "CLOSED" : "OPEN";
+                updateRegistryDOM(); // Refresh layout view instantly
             }
         }
 
-        // ORIGINAL RENDER MODULE: GENERATING CARDS FROM ARRAY LIVE
+        // Loop and render both configurations into the view box
         function updateRegistryDOM() {
             const container = document.getElementById('blueprintContainer');
-            const selector = document.getElementById('statusTargetRegistry');
-            
-            if(!container || !selector) return;
-            
+            if(!container) return;
             container.innerHTML = '';
-            selector.innerHTML = '';
 
             dynamicRegistryData.forEach((app) => {
-                // Keep Registry select options perfectly updated
-                let option = document.createElement('option');
-                option.value = app.id;
-                option.innerText = `${app.name} [Currently: ${app.status}]`;
-                selector.appendChild(option);
-
                 let card = document.createElement('div');
-                card.className = "bg-[#0b0f19] border border-gray-800 rounded-xl p-4 relative overflow-hidden shadow-inner";
                 
-                // Color configuration parsing based on application visibility status mode
-                let statusBadgeColor = app.status === "OPEN" ? "bg-green-500 text-green-400" : "bg-red-500 text-red-400";
+                let isClosed = app.status === "CLOSED";
+                let statusBadgeColor = isClosed ? "bg-red-500 text-red-400" : "bg-green-500 text-green-400";
+                let toggleBtnText = isClosed ? "Open Application" : "Close Application";
+                let toggleBtnColor = isClosed ? "bg-green-600 hover:bg-green-500" : "bg-red-600 hover:bg-red-500";
                 
-                if(app.status === "CLOSED") {
-                    card.classList.add('opacity-75');
-                }
+                card.className = `bg-[#0b0f19] border border-gray-800 rounded-xl p-4 relative overflow-hidden shadow-inner transition-all ${isClosed ? 'opacity-60' : ''}`;
 
                 let questionsHTML = '';
-                app.questions.forEach((q, qIdx) => {
+                app.questions.forEach((q) => {
                     questionsHTML += `
                         <div class="flex justify-between items-center bg-[#131a2c]/50 border border-gray-800/80 px-4 py-2 rounded-lg text-xs font-semibold text-gray-300">
                             <span class="truncate"><span class="text-blue-400 font-bold">${q.split(' ')[0]}</span> ${q.substring(q.indexOf(' ') + 1)}</span>
-                            <i onclick="deleteQuestion('${app.id}', ${qIdx})" class="fas fa-trash-alt text-red-500/60 hover:text-red-400 cursor-pointer transition p-1"></i>
+                            <i class="fas fa-trash-alt text-red-500/60 p-1"></i>
                         </div>
                     `;
                 });
 
                 card.innerHTML = `
-                    <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-3">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-gray-800 pb-3 mb-3 gap-2">
                         <div>
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 flex-wrap">
                                 <h3 class="text-sm font-black text-white tracking-wide">${app.name}</h3>
                                 <span class="text-[10px] font-bold text-gray-500 uppercase">(${app.code})</span>
                                 <span class="text-[9px] px-2 py-0.5 rounded-md font-black tracking-widest uppercase bg-opacity-10 ${statusBadgeColor}">${app.status}</span>
                             </div>
                         </div>
-                        <button onclick="deleteEntireForm('${app.id}')" class="text-xs text-red-400 hover:text-red-300 font-bold flex items-center gap-1.5 transition cursor-pointer">
-                            <i class="fas fa-folder-minus"></i> Delete Form
-                        </button>
+                        <div class="flex items-center gap-3 self-end sm:self-auto">
+                            <button onclick="toggleAppStatus('${app.id}')" class="text-[11px] text-white font-bold px-3 py-1.5 rounded-lg transition cursor-pointer ${toggleBtnColor}">
+                                ${toggleBtnText}
+                            </button>
+                            <button class="text-xs text-red-400 font-bold flex items-center gap-1.5">
+                                <i class="fas fa-folder-minus"></i> Delete Form
+                            </button>
+                        </div>
                     </div>
                     <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                        ${questionsHTML || '<div class="text-xs text-gray-600 italic py-2">No functional question modules deployed in this engine.</div>'}
+                        ${questionsHTML}
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        // CONTROL HANDLER FOR SELECTING STATUS TYPES
-        function toggleStatusState() {
-            const btn = document.getElementById('statusToggleBtn');
-            if (targetStatusMode === "OPEN") {
-                targetStatusMode = "CLOSED";
-                btn.innerText = "CLOSED / LOCKED";
-                btn.className = "bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition shadow-md shadow-red-900/30 cursor-pointer";
-            } else {
-                targetStatusMode = "OPEN";
-                btn.innerText = "OPEN / ACTIVE";
-                btn.className = "bg-green-600 hover:bg-green-500 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition shadow-md shadow-green-900/30 cursor-pointer";
-            }
-        }
-
-        // HANDLER FOR INJECTING CHANGES LIVE BACK TO DATA STATE
-        function applyStatusChange() {
-            const selectedId = document.getElementById('statusTargetRegistry').value;
-            const appObj = dynamicRegistryData.find(app => app.id === selectedId);
-            
-            if(appObj) {
-                appObj.status = targetStatusMode;
-                updateRegistryDOM();
-            }
-        }
-
-        // ORIGINAL COMPONENT INSTANTIATION CONTROL LOGIC
-        function createNewBlueprint() {
-            const nameInput = document.getElementById('newFormName');
-            if(!nameInput.value.trim()) return;
-
-            let computedId = nameInput.value.toLowerCase().replace(/[^a-z0-9]/g, '-');
-            let computedCode = nameInput.value.toLowerCase().split(' ')[0] || "gen";
-
-            dynamicRegistryData.push({
-                id: computedId,
-                name: nameInput.value.trim(),
-                code: computedCode,
-                status: "OPEN",
-                questions: []
-            });
-
-            nameInput.value = '';
-            updateRegistryDOM();
-        }
-
-        function deleteQuestion(appId, qIndex) {
-            const app = dynamicRegistryData.find(a => a.id === appId);
-            if(app) {
-                app.questions.splice(qIndex, 1);
-                updateRegistryDOM();
-            }
-        }
-
-        function deleteEntireForm(appId) {
-            dynamicRegistryData = dynamicRegistryData.filter(a => a.id !== appId);
-            updateRegistryDOM();
-        }
-
-        // WINDOW INSTANTIATION LOAD TRIGGER
+        // Run setup instantly on live load
         window.onload = function() {
             updateRegistryDOM();
         };
